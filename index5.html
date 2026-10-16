@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ahmed Gamal - Product Designer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121316;
+            background-image: 
+                radial-gradient(at 20% 20%, rgba(59, 130, 246, 0.12) 0px, transparent 50%),
+                radial-gradient(at 80% 80%, rgba(236, 72, 153, 0.12) 0px, transparent 50%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 16px;
+            color: #1f2937;
+        }
+
+        /* Smartphone Bezel Wrapper */
+        .phone-container {
+            width: 100%;
+            max-width: 380px;
+            height: 800px;
+            max-height: 94vh;
+            position: relative;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            border-radius: 46px;
+            background-color: #f4f5f7;
+            box-shadow: 
+                0 0 0 10px #24272c,
+                0 0 0 12px #363a40,
+                0 30px 70px -10px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Side buttons simulation */
+        .phone-container::before {
+            content: '';
+            position: absolute;
+            left: -15px;
+            top: 110px;
+            width: 3px;
+            height: 50px;
+            background: #2b2e33;
+            border-radius: 3px 0 0 3px;
+            box-shadow: 0 60px 0 #2b2e33, 0 120px 0 #2b2e33;
+        }
+
+        .phone-container::after {
+            content: '';
+            position: absolute;
+            right: -15px;
+            top: 140px;
+            width: 3px;
+            height: 75px;
+            background: #2b2e33;
+            border-radius: 0 3px 3px 0;
+        }
+
+        /* Header Image Container */
+        .avatar-header {
+            position: relative;
+            width: 100%;
+            height: 340px;
+            overflow: hidden;
+            background-color: #2a2a2a;
+        }
+
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 25%;
+        }
+
+        /* Glass Pill Buttons on Header */
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Main Floating Profile Card */
+        .main-card {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: 32px;
+            margin-top: -65px;
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.07), 0 0 0 1px rgba(0,0,0,0.02);
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Quick Action Small Circular Icon Buttons */
+        .action-circle-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0,0,0,0.04);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #374151;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .action-circle-btn:active {
+            transform: scale(0.92);
+            background: #f3f4f6;
+        }
+
+        /* Save Contact CTA Pill */
+        .save-contact-btn {
+            background: #111827;
+            color: #ffffff;
+            border-radius: 9999px;
+            box-shadow: 0 10px 25px -5px rgba(17, 24, 39, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .save-contact-btn:active {
+            transform: scale(0.97);
+            background: #000000;
+        }
+
+        /* Social Icons Grid Card Container */
+        .social-grid-card {
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0,0,0,0.02);
+        }
+
+        /* Social Brand Icon Styles */
+        .social-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .social-item:active {
+            transform: scale(0.9);
+        }
+
+        .social-icon-box {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 26px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+
+        /* Brand Gradients & Colors */
+        .bg-whatsapp {
+            background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+        }
+
+        .bg-instagram {
+            background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%,#d6249f 60%,#285AEB 90%);
+        }
+
+        .bg-discord {
+            background: linear-gradient(135deg, #5865F2 0%, #404EED 100%);
+        }
+
+        .bg-clubhouse {
+            background: #fbf3df;
+            border: 1px solid #e2d7be;
+            color: #212121;
+        }
+
+        .bg-telegram {
+            background: linear-gradient(135deg, #2AABEE 0%, #229ED9 100%);
+        }
+
+        .bg-medium {
+            background: #000000;
+        }
+
+        /* Scrollbar styles */
+        .scroll-content::-webkit-scrollbar {
+            width: 0px;
+        }
+    </style>
+</head>
+<body class="select-none">
+
+    <!-- SMARTPHONE DEVICE FRAME -->
+    <div class="phone-container">
+
+        <!-- Top Notch / Status Bar -->
+        <div class="w-full h-9 px-7 flex justify-between items-center text-[11px] font-semibold text-white z-30 pt-2 shrink-0 pointer-events-none absolute top-0 left-0">
+            <span id="current-time">09:41</span>
+            
+            <!-- Speaker Bar / Dynamic Island -->
+            <div class="w-20 h-4 bg-black rounded-full absolute left-1/2 -translate-x-1/2 top-2 flex items-center justify-center">
+                <div class="w-8 h-1 bg-[#222] rounded-full"></div>
+            </div>
+
+            <div class="flex items-center space-x-1.5 text-[10px]">
+                <i class="fa-solid fa-signal"></i>
+                <i class="fa-solid fa-wifi"></i>
+                <i class="fa-solid fa-battery-full text-xs"></i>
+            </div>
+        </div>
+
+        <!-- SCROLLABLE CONTENT AREA -->
+        <div class="flex-1 overflow-y-auto scroll-content relative">
+            
+            <!-- Header Image with Top Floating Action Buttons -->
+            <div class="avatar-header">
+                <!-- Top Left Pill Button (User + Grid Icon) -->
+                <div class="absolute top-11 left-5 z-20">
+                    <button onclick="showToast('Profile Menu')" class="glass-btn h-9 px-3.5 rounded-full flex items-center space-x-2 text-gray-800 hover:opacity-90 active:scale-95 transition-all">
+                        <i class="fa-solid fa-user text-xs"></i>
+                        <span class="text-xs">|</span>
+                        <i class="fa-solid fa-grip text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- Top Right Circle Button (Three Dots) -->
+                <div class="absolute top-11 right-5 z-20">
+                    <button onclick="toggleOptionsModal()" class="glass-btn w-9 h-9 rounded-full flex items-center justify-center text-gray-800 hover:opacity-90 active:scale-95 transition-all">
+                        <i class="fa-solid fa-ellipsis text-sm"></i>
+                    </button>
+                </div>
+
+                <!-- Designer Header Image -->
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600&h=800" 
+                     alt="Ahmed Gamal" 
+                     onerror="this.src='https://placehold.co/600x800/2a2a2a/ffffff?text=Ahmed+Gamal';"
+                     class="avatar-img">
+            </div>
+
+            <!-- Content Area Overlapping Header -->
+            <div class="px-4 pb-8 relative z-10">
+                
+                <!-- Main Floating White Card -->
+                <div class="main-card p-6 text-center">
+                    
+                    <!-- Name & Verified Badge -->
+                    <div class="flex items-center justify-center space-x-1.5">
+                        <h1 class="text-xl font-bold text-gray-900 tracking-tight">Ahmed Gamal</h1>
+                        <!-- Orange/Gold Verified Checkmark -->
+                        <span class="w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center text-white text-[9px] shadow-sm">
+                            <i class="fa-solid fa-check"></i>
+                        </span>
+                    </div>
+
+                    <!-- Role Subtitle -->
+                    <p class="text-xs font-medium text-gray-400 mt-1">Product Designer</p>
+
+                    <!-- Quick Action Circular Buttons (Call, Mail, Link) -->
+                    <div class="flex items-center justify-center space-x-5 mt-5 mb-5">
+                        <!-- Call -->
+                        <a href="tel:+201000000000" onclick="showToast('Calling Ahmed...')" class="action-circle-btn">
+                            <i class="fa-solid fa-phone text-sm"></i>
+                        </a>
+                        
+                        <!-- Email -->
+                        <a href="mailto:ahmed.gamal@example.com" onclick="showToast('Opening Email...')" class="action-circle-btn">
+                            <i class="fa-solid fa-envelope text-sm"></i>
+                        </a>
+
+                        <!-- Share Link -->
+                        <button onclick="copyCardLink()" class="action-circle-btn">
+                            <i class="fa-solid fa-link text-sm"></i>
+                        </button>
+                    </div>
+
+                    <!-- Main Save Contact Pill CTA -->
+                    <button onclick="downloadVCard()" class="save-contact-btn w-full py-3.5 px-6 flex items-center justify-center space-x-2 text-sm font-semibold tracking-wide">
+                        <div class="w-5 h-5 rounded-full border border-white/30 flex items-center justify-center text-[10px]">
+                            <i class="fa-solid fa-plus"></i>
+                        </div>
+                        <span>Save Contact</span>
+                    </button>
+
+                </div>
+
+                <!-- Bottom Social Grid Container -->
+                <div class="social-grid-card mt-4 p-5">
+                    <div class="grid grid-cols-3 gap-y-6 gap-x-4">
+                        
+                        <!-- WhatsApp -->
+                        <div onclick="openSocial('WhatsApp', 'https://wa.me/')" class="social-item">
+                            <div class="social-icon-box bg-whatsapp">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </div>
+                            <span class="text-[11px] font-medium text-gray-600 mt-2">WhatsApp</span>
+                        </div>
+
+                        <!-- Instagram -->
+                        <div onclick="openSocial('Instagram', 'https://instagram.com')" class="social-item">
+                            <div class="social-icon-box bg-instagram">
+                                <i class="fa-brands fa-instagram"></i>
+                            </div>
+                            <span class="text-[11px] font-medium text-gray-600 mt-2">Instagram</span>
+                        </div>
+
+                        <!-- Discord -->
+                        <div onclick="openSocial('Discord', 'https://discord.com')" class="social-item">
+                            <div class="social-icon-box bg-discord">
+                                <i class="fa-brands fa-discord"></i>
+                            </div>
+                            <span class="text-[11px] font-medium text-gray-600 mt-2">Discord</span>
+                        </div>
+
+                        <!-- Clubhouse -->
+                        <div onclick="openSocial('Clubhouse', 'https://clubhouse.com')" class="social-item">
+                            <div class="social-icon-box bg-clubhouse">
+                                <!-- Wave Hand Avatar SVG / Icon -->
+                                <i class="fa-solid fa-hand-wave text-amber-600 text-xl"></i>
+                            </div>
+                            <span class="text-[11px] font-medium text-gray-600 mt-2">Clubhouse</span>
+                        </div>
+
+                        <!-- Telegram -->
+                        <div onclick="openSocial('Telegram', 'https://telegram.org')" class="social-item">
+                            <div class="social-icon-box bg-telegram">
+                                <i class="fa-paper-plane fa-solid text-xl -ml-0.5"></i>
+                            </div>
+                            <span class="text-[11px] font-medium text-gray-600 mt-2">Telegram</span>
+                        </div>
+
+                        <!-- Medium -->
+                        <div onclick="openSocial('Medium', 'https://medium.com')" class="social-item">
+                            <div class="social-icon-box bg-medium">
+                                <i class="fa-brands fa-medium"></i>
+                            </div>
+                            <span class="text-[11px] font-medium text-gray-600 mt-2">Medium</span>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Phone Home Bar / Gesture Indicator -->
+        <div class="w-full h-4 bg-transparent flex items-center justify-center pb-1 shrink-0 z-30">
+            <div class="w-28 h-1 bg-gray-400/50 rounded-full"></div>
+        </div>
+
+    </div>
+
+    <!-- OPTIONS MENU MODAL -->
+    <div id="options-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-3xl p-5 w-full max-w-xs relative shadow-2xl scale-95 transition-transform duration-300" id="options-modal-card">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-sm font-bold text-gray-800">Card Options</h3>
+                <button onclick="toggleOptionsModal()" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-2 text-xs font-medium text-gray-700">
+                <button onclick="copyCardLink(); toggleOptionsModal();" class="w-full p-3 bg-gray-50 rounded-2xl flex items-center space-x-3 hover:bg-gray-100 text-left">
+                    <i class="fa-solid fa-copy text-gray-500 text-sm"></i>
+                    <span>Copy Card URL</span>
+                </button>
+                <button onclick="downloadVCard(); toggleOptionsModal();" class="w-full p-3 bg-gray-50 rounded-2xl flex items-center space-x-3 hover:bg-gray-100 text-left">
+                    <i class="fa-solid fa-address-card text-gray-500 text-sm"></i>
+                    <span>Export vCard</span>
+                </button>
+                <button onclick="showToast('Card Shared!'); toggleOptionsModal();" class="w-full p-3 bg-gray-50 rounded-2xl flex items-center space-x-3 hover:bg-gray-100 text-left">
+                    <i class="fa-solid fa-share-nodes text-gray-500 text-sm"></i>
+                    <span>Share via QR Code</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-gray-900/95 backdrop-blur-md text-white px-4 py-2.5 rounded-full shadow-2xl text-xs font-medium opacity-0 pointer-events-none transition-opacity duration-300 z-50 flex items-center space-x-2 border border-gray-700/50">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toast-message">Notification</span>
+    </div>
+
+    <script>
+        // Realtime Clock Update
+        function updateTime() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            hours = hours < 10 ? '0' + hours : hours;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            document.getElementById('current-time').textContent = `${hours}:${minutes}`;
+        }
+        updateTime();
+        setInterval(updateTime, 30000);
+
+        // Toast Trigger
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            toastMsg.textContent = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+
+        // Copy Card Link
+        function copyCardLink() {
+            const dummy = document.createElement('input');
+            document.body.appendChild(dummy);
+            dummy.value = window.location.href;
+            dummy.select();
+            document.execCommand('copy');
+            document.body.removeChild(dummy);
+            showToast('Card link copied to clipboard!');
+        }
+
+        // Social Action Trigger
+        function openSocial(platform, url) {
+            showToast(`Opening ${platform}...`);
+            setTimeout(() => {
+                window.open(url, '_blank');
+            }, 600);
+        }
+
+        // Options Modal Toggle
+        function toggleOptionsModal() {
+            const modal = document.getElementById('options-modal');
+            const card = document.getElementById('options-modal-card');
+            if (modal.classList.contains('opacity-0')) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                card.classList.remove('scale-95');
+                card.classList.add('scale-100');
+            } else {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                card.classList.remove('scale-100');
+                card.classList.add('scale-95');
+            }
+        }
+
+        // Dynamic vCard Download
+        function downloadVCard() {
+            const vcard = `BEGIN:VCARD
+VERSION:3.0
+FN:Ahmed Gamal
+TITLE:Product Designer
+TEL;TYPE=CELL:+201000000000
+EMAIL:ahmed.gamal@example.com
+URL:${window.location.href}
+NOTE:Ahmed Gamal - Product Designer Digital Business Card
+END:VCARD`;
+
+            const blob = new Blob([vcard], { type: 'text/vcard' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Ahmed_Gamal.vcf';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
+            showToast('Saved Ahmed Gamal contact!');
+        }
+    </script>
+</body>
+</html>

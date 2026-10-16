@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kayla Rivers - Tech Sales | Valve Mobile</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #6b0d1a;
+            background-image: radial-gradient(circle at 50% 30%, #8b1325 0%, #4a0711 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 12px;
+            color: #2b2b2b;
+        }
+
+        /* Smartphone Bezel Wrapper */
+        .phone-container {
+            width: 100%;
+            max-width: 380px;
+            height: 800px;
+            max-height: 94vh;
+            position: relative;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            border-radius: 46px;
+            background-color: #ffffff;
+            box-shadow: 
+                0 0 0 8px #ffffff,
+                0 0 0 10px rgba(0, 0, 0, 0.15),
+                0 25px 60px 10px rgba(0, 0, 0, 0.55);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        /* Top Notch Section */
+        .phone-notch {
+            width: 100%;
+            height: 32px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 40;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .notch-bar {
+            width: 90px;
+            height: 14px;
+            background-color: #111111;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 10px;
+        }
+
+        .notch-speaker {
+            width: 35px;
+            height: 3px;
+            background-color: #333333;
+            border-radius: 2px;
+        }
+
+        .notch-camera {
+            width: 6px;
+            height: 6px;
+            background-color: #1a233a;
+            border-radius: 50%;
+        }
+
+        /* Header Image Section with Curve overlay */
+        .header-photo-wrapper {
+            position: relative;
+            width: 100%;
+            height: 330px;
+            overflow: hidden;
+            background-color: #e5e7eb;
+        }
+
+        .header-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 20%;
+        }
+
+        /* Bottom Curved Wave Container */
+        .wave-divider {
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            overflow: hidden;
+            line-height: 0;
+            z-index: 10;
+        }
+
+        .wave-svg {
+            position: relative;
+            display: block;
+            width: calc(100% + 1.3px);
+            height: 75px;
+        }
+
+        /* Company Logo Badge Positioned on Wave Curve */
+        .company-logo-badge {
+            position: absolute;
+            right: 20px;
+            bottom: 6px;
+            z-index: 20;
+            width: 64px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Left Dashed Vertical Line Accent */
+        .dashed-accent-line {
+            position: absolute;
+            left: 0;
+            top: 4px;
+            bottom: 4px;
+            width: 2px;
+            border-left: 2px dashed #9ca3af;
+        }
+
+        /* Red Circular Action Icons */
+        .red-icon-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: #d31832;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            shrink: 0;
+            box-shadow: 0 4px 10px rgba(211, 24, 50, 0.3);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .red-icon-btn:hover {
+            transform: scale(1.06);
+        }
+
+        .red-icon-btn:active {
+            transform: scale(0.94);
+        }
+
+        /* Scrollbar Styling */
+        .scroll-content::-webkit-scrollbar {
+            width: 3px;
+        }
+        .scroll-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .scroll-content::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="select-none">
+
+    <!-- SMARTPHONE DEVICE MOCKUP CONTAINER -->
+    <div class="phone-container">
+
+        <!-- Top Camera & Speaker Notch Bar -->
+        <div class="phone-notch">
+            <div class="notch-bar">
+                <div class="notch-speaker"></div>
+                <div class="notch-camera"></div>
+            </div>
+        </div>
+
+        <!-- SCROLLABLE INNER BODY -->
+        <div class="flex-1 overflow-y-auto scroll-content relative bg-white">
+            
+            <!-- TOP BANNER PHOTO SECTION -->
+            <div class="header-photo-wrapper">
+                <!-- Kayla's Portrait Photo -->
+                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=600&h=800" 
+                     alt="Kayla Rivers" 
+                     onerror="this.src='https://placehold.co/600x800/d31832/ffffff?text=Kayla+Rivers';"
+                     class="header-photo">
+
+                <!-- Red S-Wave Curved Divider SVG -->
+                <div class="wave-divider">
+                    <svg class="wave-svg" viewBox="0 0 500 120" preserveAspectRatio="none">
+                        <!-- Curved Red Accent Stripe -->
+                        <path d="M 0,35 C 150,110 350,-20 500,45 L 500,120 L 0,120 Z" fill="#d31832"></path>
+                        <!-- Main White Background Cutout -->
+                        <path d="M 0,55 C 160,125 340,5 500,62 L 500,120 L 0,120 Z" fill="#ffffff"></path>
+                    </svg>
+
+                    <!-- Valve Mobile Stylized Z Brand Logo Badge -->
+                    <div class="company-logo-badge">
+                        <svg width="48" height="28" viewBox="0 0 100 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Upper Red Wing -->
+                            <path d="M 10 12 L 85 12 L 65 26 L 25 26 Z" fill="#d31832"/>
+                            <!-- Center Black Diagonal -->
+                            <path d="M 70 20 L 30 48 L 48 48 L 88 20 Z" fill="#111111"/>
+                            <!-- Lower Black Base -->
+                            <path d="M 15 48 L 75 48 L 90 35 L 30 35 Z" fill="#111111"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MAIN CONTENT SECTION -->
+            <div class="px-6 pt-1 pb-8 space-y-5">
+                
+                <!-- NAME & TITLE BLOCK WITH LEFT DASHED LINE ACCENT -->
+                <div class="relative pl-4 mt-1">
+                    <div class="dashed-accent-line"></div>
+                    
+                    <!-- Full Name -->
+                    <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight leading-snug">
+                        Kayla Rivers
+                    </h1>
+
+                    <!-- Title & Company -->
+                    <p class="text-sm font-semibold text-gray-700 mt-0.5">
+                        Tech Sales
+                    </p>
+                    <p class="text-xs font-medium italic text-gray-500 mt-0.5">
+                        Valve Mobile
+                    </p>
+                </div>
+
+                <!-- PRONOUNS TAG -->
+                <div class="flex items-center space-x-2 text-xs font-semibold text-gray-700 pt-1">
+                    <i class="fa-regular fa-comment-dots text-gray-400 text-sm"></i>
+                    <span>She/Her</span>
+                </div>
+
+                <!-- BIO DESCRIPTION PARAGRAPH -->
+                <p class="text-xs text-gray-700 leading-relaxed font-normal pt-1 pr-1">
+                    Let me help you invest in the future of mobile communication. 🚀 Check out our product below!
+                </p>
+
+                <!-- CONTACT LINKS SECTION -->
+                <div class="space-y-3.5 pt-3">
+                    
+                    <!-- Website Signup Link Row -->
+                    <div class="flex items-center space-x-3.5 group cursor-pointer" onclick="openWebsite()">
+                        <div class="red-icon-btn">
+                            <i class="fa-solid fa-newspaper"></i>
+                        </div>
+                        <a href="https://www.valvemobile.com/signup" target="_blank" 
+                           class="text-xs font-semibold text-gray-800 hover:text-[#d31832] transition-colors break-all">
+                            www.valvemobile.com/signup
+                        </a>
+                    </div>
+
+                    <!-- Location / Secondary Interactive Capsule Row -->
+                    <div class="flex items-center space-x-3.5">
+                        <div class="red-icon-btn" onclick="showToast('Location: San Francisco, CA')">
+                            <i class="fa-solid fa-location-dot"></i>
+                        </div>
+                        <!-- Light Grey Capsule Input/Button -->
+                        <button onclick="showToast('Location: San Francisco, CA')" 
+                                class="flex-1 h-10 bg-gray-200/80 rounded-full hover:bg-gray-300/80 active:scale-98 transition-all flex items-center px-4">
+                            <span class="text-xs font-medium text-gray-500">San Francisco, CA</span>
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- SAVE TO CONTACTS ACTION BUTTON -->
+                <div class="pt-4">
+                    <button onclick="downloadVCard()" 
+                            class="w-full py-3.5 px-6 bg-[#d31832] text-white rounded-full font-bold text-xs shadow-lg shadow-red-900/20 hover:bg-[#b51228] active:scale-98 transition-all flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-user-plus text-sm"></i>
+                        <span>Save Contact</span>
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Phone Bottom Navigation Bar -->
+        <div class="w-full h-5 bg-white flex items-center justify-center shrink-0 z-30 pb-1">
+            <div class="w-28 h-1 bg-gray-300 rounded-full"></div>
+        </div>
+
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-4 py-2.5 rounded-full shadow-2xl text-xs font-medium opacity-0 pointer-events-none transition-opacity duration-300 z-50 flex items-center space-x-2 border border-gray-700">
+        <i class="fa-solid fa-circle-check text-red-500"></i>
+        <span id="toast-message">Notification</span>
+    </div>
+
+    <script>
+        // Toast Trigger
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            toastMsg.textContent = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+
+        // Open Website
+        function openWebsite() {
+            showToast('Opening Valve Mobile Signup...');
+            setTimeout(() => {
+                window.open('https://www.valvemobile.com/signup', '_blank');
+            }, 500);
+        }
+
+        // Generate and Download vCard (.vcf)
+        function downloadVCard() {
+            const vcard = `BEGIN:VCARD
+VERSION:3.0
+FN:Kayla Rivers
+TITLE:Tech Sales
+ORG:Valve Mobile
+URL:https://www.valvemobile.com/signup
+NOTE:Let me help you invest in the future of mobile communication. She/Her.
+END:VCARD`;
+
+            const blob = new Blob([vcard], { type: 'text/vcard' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Kayla_Rivers.vcf';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
+            showToast('Saved Kayla Rivers contact!');
+        }
+    </script>
+</body>
+</html>

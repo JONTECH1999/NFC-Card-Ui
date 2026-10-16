@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>David Chen - Apex Logistics Inc.</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #262422;
+        }
+        .phone-frame {
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.6), 0 0 0 12px #1e1c1b, 0 0 0 14px #333;
+        }
+        .custom-cream-bg {
+            background-color: #f4efe6;
+        }
+        .custom-card-bg {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(10px);
+        }
+        .curved-header {
+            border-bottom-left-radius: 50% 30px;
+            border-bottom-right-radius: 50% 30px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 sm:p-6">
+
+    <!-- Smartphone Mockup Container -->
+    <div class="phone-frame w-full max-w-[390px] h-[830px] rounded-[48px] overflow-hidden relative flex flex-col custom-cream-bg text-[#2c2825] select-none">
+        
+        <!-- Status Bar -->
+        <div class="w-full h-11 px-6 flex justify-between items-center text-xs font-semibold text-[#2c2825] z-30 pt-2 shrink-0">
+            <span>10:09</span>
+            <!-- Camera / Dynamic Island Notch -->
+            <div class="w-24 h-5 bg-black rounded-full absolute left-1/2 -translate-x-1/2 top-2 flex items-center justify-center">
+                <div class="w-2.5 h-2.5 bg-[#121212] rounded-full mr-2"></div>
+                <div class="w-2 h-2 bg-[#0d1b2a] rounded-full"></div>
+            </div>
+            <div class="flex items-center space-x-2 text-[11px]">
+                <i class="fa-solid fa-signal"></i>
+                <i class="fa-solid fa-wifi"></i>
+                <i class="fa-solid fa-battery-full"></i>
+            </div>
+        </div>
+
+        <!-- Scrollable Content Area -->
+        <div class="flex-1 overflow-y-auto overflow-x-hidden relative pb-8">
+            
+            <!-- Header Section with Curved Backdrop -->
+            <div class="relative pt-4 pb-6 px-6 text-center bg-[#e8dfd1] curved-header shadow-sm">
+                <!-- Decorative subtle backdrop header image / pattern -->
+                <div class="absolute inset-0 opacity-10 bg-cover bg-center pointer-events-none" style="background-image: url('https://placehold.co/400x300/d6ccb8/2c2825?text=Office');"></div>
+
+                <!-- Profile Picture -->
+                <div class="relative mx-auto w-32 h-32 rounded-full p-1 bg-gradient-to-b from-[#d6ccb8] to-[#f4efe6] shadow-md mb-4">
+                    <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=300&h=300" 
+                         alt="David Chen" 
+                         onerror="this.src='https://placehold.co/300x300/e8dfd1/2c2825?text=David+Chen';"
+                         class="w-full h-full object-cover rounded-full">
+                </div>
+
+                <!-- Name & Title -->
+                <h1 class="text-xl font-bold tracking-wider text-[#2c2825] mb-1">DAVID CHEN</h1>
+                <p class="text-[11px] font-semibold tracking-wider text-[#6b645c] uppercase mb-1">CHIEF OPERATIONS OFFICER</p>
+                
+                <!-- Company & Logo -->
+                <div class="flex items-center justify-center space-x-2 text-xs font-bold tracking-wide text-[#2c2825]">
+                    <span>APEX LOGISTICS INC.</span>
+                </div>
+                <div class="flex items-center justify-center space-x-1.5 mt-1.5 text-sm font-black tracking-widest text-[#2c2825]">
+                    <!-- Apex Icon -->
+                    <span class="inline-flex items-center justify-center w-5 h-5 bg-[#2c2825] text-white rounded-sm text-[10px] font-bold"><i class="fa-solid fa-mountain"></i></span>
+                    <span class="text-xs font-extrabold tracking-widest">APEX</span>
+                </div>
+            </div>
+
+            <!-- Main Interactive Card Container -->
+            <div class="px-5 mt-4">
+                <div class="custom-card-bg rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-white/60">
+                    
+                    <!-- Action Buttons Top Row -->
+                    <div class="grid grid-cols-2 gap-3 mb-5">
+                        <!-- Call Now Button -->
+                        <a href="tel:+15551234567" class="flex items-center justify-center space-x-2 py-3 px-4 bg-[#e8dfd1] hover:bg-[#ded4c5] transition-colors rounded-2xl shadow-sm text-xs font-bold text-[#2c2825]">
+                            <i class="fa-solid fa-phone text-xs"></i>
+                            <span>Call Now</span>
+                        </a>
+                        <!-- Send Email Button -->
+                        <a href="mailto:david.chen@apexlogistics.com" class="flex items-center justify-center space-x-2 py-3 px-4 bg-[#2c2825] hover:bg-[#3d3835] transition-colors rounded-2xl shadow-sm text-xs font-bold text-white">
+                            <i class="fa-solid fa-envelope text-xs"></i>
+                            <span>Send Email</span>
+                        </a>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="w-full h-[1px] bg-[#d6ccb8]/60 mb-4"></div>
+
+                    <!-- Contact Details List -->
+                    <div class="space-y-3 mb-5">
+                        <!-- Phone Item -->
+                        <a href="tel:+15551234567" class="flex items-center space-x-3 text-xs text-[#4a433d] hover:text-[#2c2825] transition-colors">
+                            <div class="w-7 h-7 rounded-full bg-[#e8dfd1] flex items-center justify-center text-[#2c2825] shrink-0 text-xs">
+                                <i class="fa-solid fa-phone"></i>
+                            </div>
+                            <span class="font-medium">+1 (555) 123-4567</span>
+                        </a>
+                        <!-- Email Item -->
+                        <a href="mailto:david.chen@apexlogistics.com" class="flex items-center space-x-3 text-xs text-[#4a433d] hover:text-[#2c2825] transition-colors">
+                            <div class="w-7 h-7 rounded-full bg-[#e8dfd1] flex items-center justify-center text-[#2c2825] shrink-0 text-xs">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <span class="font-medium">david.chen@apexlogistics.com</span>
+                        </a>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="w-full h-[1px] bg-[#d6ccb8]/60 mb-4"></div>
+
+                    <!-- Social Icons & Handles Grid/Row -->
+                    <div class="grid grid-cols-3 gap-y-3 gap-x-2">
+                        <!-- LinkedIn -->
+                        <a href="https://linkedin.com" target="_blank" class="flex items-center space-x-2 group">
+                            <div class="w-7 h-7 rounded-full bg-[#c7bcab] group-hover:bg-[#b5a997] flex items-center justify-center text-[#2c2825] shrink-0 text-xs">
+                                <i class="fa-brands fa-linkedin-in"></i>
+                            </div>
+                            <span class="text-[11px] font-medium text-[#4a433d] truncate">LinkedIn</span>
+                        </a>
+                        <!-- Facebook -->
+                        <a href="https://facebook.com" target="_blank" class="flex items-center space-x-2 group">
+                            <div class="w-7 h-7 rounded-full bg-[#4a433d] group-hover:bg-[#2c2825] flex items-center justify-center text-white shrink-0 text-xs">
+                                <i class="fa-brands fa-facebook-f"></i>
+                            </div>
+                            <span class="text-[11px] font-medium text-[#4a433d] truncate">Facebook</span>
+                        </a>
+                        <!-- X (Twitter) -->
+                        <a href="https://x.com" target="_blank" class="flex items-center space-x-2 group">
+                            <div class="w-7 h-7 rounded-full bg-[#d6ccb8] group-hover:bg-[#c7bcab] flex items-center justify-center text-[#2c2825] shrink-0 text-xs">
+                                <i class="fa-solid fa-xmark"></i>
+                            </div>
+                            <span class="text-[11px] font-medium text-[#4a433d] truncate">@davidchen_apex</span>
+                        </a>
+                        <!-- Instagram -->
+                        <a href="https://instagram.com" target="_blank" class="flex items-center space-x-2 group">
+                            <div class="w-7 h-7 rounded-full bg-[#c7bcab] group-hover:bg-[#b5a997] flex items-center justify-center text-[#2c2825] shrink-0 text-xs">
+                                <i class="fa-brands fa-instagram"></i>
+                            </div>
+                            <span class="text-[11px] font-medium text-[#4a433d] truncate">Instagram</span>
+                        </a>
+                        <!-- Email Badge -->
+                        <a href="mailto:david.chen@apexlogistics.com" class="flex items-center space-x-2 group">
+                            <div class="w-7 h-7 rounded-full bg-[#4a433d] group-hover:bg-[#2c2825] flex items-center justify-center text-white shrink-0 text-xs">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <span class="text-[11px] font-medium text-[#4a433d] truncate">Email Me</span>
+                        </a>
+                        <!-- Website -->
+                        <a href="https://apexlogistics.com" target="_blank" class="flex items-center space-x-2 group">
+                            <div class="w-7 h-7 rounded-full bg-[#c7bcab] group-hover:bg-[#b5a997] flex items-center justify-center text-[#2c2825] shrink-0 text-xs">
+                                <i class="fa-solid fa-globe"></i>
+                            </div>
+                            <span class="text-[11px] font-medium text-[#4a433d] truncate">apexlogistics.com</span>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Bio / Tagline Section -->
+            <div class="px-8 mt-5 text-center">
+                <p class="text-xs font-normal text-[#5c544d] leading-relaxed italic">
+                    "Passionate about operational excellence & driving sustainable business growth."
+                </p>
+            </div>
+
+            <!-- Save to Contacts Button -->
+            <div class="px-5 mt-5">
+                <button onclick="saveContact()" class="w-full py-3.5 px-6 bg-gradient-to-r from-[#bfae99] via-[#c4b5a0] to-[#bfae99] hover:opacity-95 transition-all text-[#2c2825] font-semibold text-sm rounded-2xl shadow-md flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-user-plus text-xs"></i>
+                    <span>Save to Contacts</span>
+                </button>
+            </div>
+
+            <!-- Bottom Navigation Links (Wallet & Share) -->
+            <div class="flex items-center justify-center space-x-6 mt-5 text-xs font-medium text-[#4a433d]">
+                <button onclick="addToWallet()" class="hover:underline underline-offset-4">Add to Wallet</button>
+                <span class="text-[#b5a997]">|</span>
+                <button onclick="shareCard()" class="hover:underline underline-offset-4">Share</button>
+            </div>
+
+        </div>
+
+        <!-- Phone Home Indicator Bar -->
+        <div class="w-full h-6 bg-transparent flex items-center justify-center pb-2 shrink-0 z-30">
+            <div class="w-32 h-1 bg-[#2c2825]/40 rounded-full"></div>
+        </div>
+
+    </div>
+
+    <!-- Notification Toast Modal (Replaces alert) -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#2c2825] text-white px-5 py-3 rounded-xl shadow-xl text-xs font-medium opacity-0 pointer-events-none transition-opacity duration-300 z-50 flex items-center space-x-2">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toast-message">Action completed successfully!</span>
+    </div>
+
+    <script>
+        // Custom message box function instead of alert()
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-message');
+            msgEl.textContent = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+
+        function saveContact() {
+            // Generate virtual vCard data
+            const vcard = `BEGIN:VCARD
+VERSION:3.0
+FN:David Chen
+TITLE:Chief Operations Officer
+ORG:Apex Logistics Inc.
+TEL:+15551234567
+EMAIL:david.chen@apexlogistics.com
+URL:https://apexlogistics.com
+NOTE:Passionate about operational excellence & driving sustainable business growth.
+END:VCARD`;
+
+            const blob = new Blob([vcard], { type: 'text/vcard' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'David_Chen.vcf';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showToast('Contact saved to your device!');
+        }
+
+        function addToWallet() {
+            showToast('Pass added to Apple/Google Wallet!');
+        }
+
+        function shareCard() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'David Chen - Apex Logistics Inc.',
+                    text: 'Check out David Chen digital business card',
+                    url: window.location.href,
+                }).catch(() => {
+                    copyToClipboard();
+                });
+            } else {
+                copyToClipboard();
+            }
+        }
+
+        function copyToClipboard() {
+            const dummy = document.createElement('input');
+            document.body.appendChild(dummy);
+            dummy.value = window.location.href;
+            dummy.select();
+            document.execCommand('copy');
+            document.body.removeChild(dummy);
+            showToast('Card link copied to clipboard!');
+        }
+    </script>
+</body>
+</html>

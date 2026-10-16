@@ -12,7 +12,6 @@ const profile = {
     "Brgy. 185, North B12, L9 Manggahan Road, Barangay 185, Caloocan, Metro Manila",
   facebook: "https://www.facebook.com/aljon11onsi/",
   youtube: "https://www.youtube.com/@aljonalonzo2195",
-  instagram: "https://www.instagram.com/aljon_alonzo/",
 };
 
 const actions = [
@@ -21,21 +20,25 @@ const actions = [
     icon: "fa-solid fa-phone",
     href: `tel:${profile.phoneLink}`,
     ariaLabel: `Call ${profile.name} at ${profile.phone}`,
-    primary: true,
   },
   {
     label: "Email",
     icon: "fa-regular fa-envelope",
     href: `mailto:${profile.email}`,
     ariaLabel: `Email ${profile.name}`,
-    primary: true,
   },
   {
     label: "Text",
     icon: "fa-regular fa-comment-dots",
     href: `sms:${profile.phoneLink}`,
     ariaLabel: `Text ${profile.name}`,
-    primary: true,
+  },
+  {
+    label: "Location",
+    icon: "fa-solid fa-location-dot",
+    href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profile.address)}`,
+    ariaLabel: `Find ${profile.business} at ${profile.address}`,
+    external: true,
   },
   {
     label: "Facebook",
@@ -52,21 +55,6 @@ const actions = [
     ariaLabel: `${profile.business} on YouTube`,
     external: true,
     social: true,
-  },
-  {
-    label: "Instagram",
-    icon: "fa-brands fa-instagram",
-    href: profile.instagram,
-    ariaLabel: `${profile.business} on Instagram`,
-    external: true,
-    social: true,
-  },
-  {
-    label: "Shop location",
-    icon: "fa-solid fa-location-dot",
-    href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profile.address)}`,
-    ariaLabel: `Find ${profile.business} at ${profile.address}`,
-    external: true,
   },
 ];
 
@@ -103,18 +91,69 @@ const products = [
   },
 ];
 
-function ActionLink({ action }) {
-  const className = [
-    "action",
-    action.primary && "primary",
-    action.social && "social",
-  ]
-    .filter(Boolean)
-    .join(" ");
+const demoLayouts = Array.from({ length: 12 }, (_, index) => {
+  const number = index + 1;
 
+  return {
+    number,
+    href: `/index${number}.html`,
+  };
+});
+
+function LayoutGallery() {
+  return (
+    <main className="shop-placeholder">
+      <header className="layout-gallery-header">
+        <a className="layout-gallery-back" href="/">
+          <i className="fa-solid fa-arrow-left" aria-hidden="true" />
+          <span>Back to business card</span>
+        </a>
+        <p className="layout-gallery-eyebrow">Jontech design collection</p>
+        <h1>Choose your digital card design</h1>
+        <p className="layout-gallery-description">
+          Browse the mini previews, then select View layout to open a complete
+          card.
+        </p>
+      </header>
+
+      <section className="layout-gallery-grid" aria-label="Available layouts">
+        {demoLayouts.map(({ number, href }) => (
+          <article className="layout-preview-card" key={number}>
+            <div className="layout-preview-frame">
+              <iframe
+                src={href}
+                title={`Preview of layout ${number}`}
+                loading="lazy"
+                scrolling="no"
+                tabIndex={-1}
+              />
+            </div>
+            <div className="layout-preview-details">
+              <div>
+                <p className="layout-preview-label">DESIGN {number.toString().padStart(2, "0")}</p>
+                <h2>Layout {number}</h2>
+              </div>
+              <a
+                className="layout-preview-link"
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                View layout
+                <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" />
+              </a>
+            </div>
+          </article>
+        ))}
+      </section>
+    </main>
+  );
+}
+
+function ActionLink({ action }) {
   return (
     <a
-      className={className}
+      className="action"
       href={action.href}
       aria-label={action.ariaLabel}
       {...(action.external
@@ -233,11 +272,6 @@ function App() {
         nextTheme === "light" ? "#f6f1e8" : "#0b1120"
       );
     }
-    showToast(
-      nextTheme === "light"
-        ? "Switched to Warm Beige view"
-        : "Switched to Classic Dark view"
-    );
   }
 
   useEffect(() => {
@@ -417,6 +451,10 @@ function App() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [qrOpen, installHelpOpen]);
 
+  if (window.location.pathname.replace(/\/+$/, "") === "/shop") {
+    return <LayoutGallery />;
+  }
+
   return (
     <>
       {introPhase !== "done" && (
@@ -431,48 +469,21 @@ function App() {
               <span className="intro-orbit intro-orbit-one" />
               <span className="intro-orbit intro-orbit-two" />
               <span className="intro-emblem-core">
-                <i className="fa-solid fa-arrow-trend-up" />
+                <img src="/aljon-profile.jfif" alt="" />
               </span>
             </div>
-            <p className="intro-eyebrow">A personal introduction</p>
-            <p className="intro-brand">{profile.business}</p>
+            <p className="intro-eyebrow">Your digital growth partner</p>
+            <h1 className="intro-brand">{profile.name}</h1>
+            <p className="intro-role">{profile.role}</p>
             <div className="intro-loader" role="presentation">
               <span />
             </div>
-            <p className="intro-caption">Preparing your introduction</p>
+            <p className="intro-caption">
+              <span className="intro-loading-dot" aria-hidden="true" />
+              Preparing your digital card
+            </p>
           </div>
         </div>
-      )}
-
-      {introPhase === "done" && (
-        <aside className="top-controls" aria-label="Theme settings">
-          <button
-            className="theme-toggle-btn"
-            type="button"
-            onClick={toggleTheme}
-            aria-label={
-              theme === "light"
-                ? "Switch to Classic Dark mode"
-                : "Switch to Warm Beige mode"
-            }
-            title={
-              theme === "light"
-                ? "Switch to Classic Dark mode"
-                : "Switch to Warm Beige mode"
-            }
-          >
-            <span className="theme-toggle-icon" aria-hidden="true">
-              <i
-                className={
-                  theme === "light" ? "fa-solid fa-moon" : "fa-solid fa-sun"
-                }
-              />
-            </span>
-            <span className="theme-toggle-label">
-              {theme === "light" ? "Classic Dark" : "Warm Beige"}
-            </span>
-          </button>
-        </aside>
       )}
 
       <main
@@ -500,74 +511,133 @@ function App() {
               />
             </>
           )}
+          <header className="app-status-bar" aria-label="Device status">
+            <span className="status-brand">{profile.business}</span>
+            <button
+              className="status-theme-button"
+              type="button"
+              onClick={toggleTheme}
+              aria-label={
+                theme === "light"
+                  ? "Switch to dark theme"
+                  : "Switch to light theme"
+              }
+              title="Change color theme"
+            >
+              <i
+                className={
+                  theme === "light" ? "fa-solid fa-moon" : "fa-solid fa-sun"
+                }
+                aria-hidden="true"
+              />
+            </button>
+          </header>
+
           <section className="profile-panel" aria-label="Business owner profile">
-            <img
-              className="profile-photo"
-              src="/aljon-profile.jfif"
-              alt={`Portrait of ${profile.name}`}
-              onError={(event) => {
-                event.currentTarget.hidden = true;
-              }}
-            />
+            <div className="profile-halo" aria-hidden="true" />
+            <div className="profile-avatar-frame">
+              <img
+                className="profile-photo"
+                src="/aljon-profile.jfif"
+                alt={`Portrait of ${profile.name}`}
+                onError={(event) => {
+                  event.currentTarget.hidden = true;
+                }}
+              />
+            </div>
             <div className="profile-copy">
               <p className="eyebrow">Your digital growth partner</p>
               <h1 id="person-name">{profile.name}</h1>
+              <span className="profile-divider" aria-hidden="true" />
               <p className="role">{profile.role}</p>
               <div className="company-name">
-                <span className="company-icon">
-                  <i className="fa-solid fa-arrow-trend-up" aria-hidden="true" />
-                </span>
+                <i className="fa-solid fa-arrow-trend-up" aria-hidden="true" />
                 <span>{profile.business}</span>
               </div>
             </div>
           </section>
 
           <section className="details-panel" aria-labelledby="about-heading">
-            <p className="section-kicker">Let&apos;s build something great</p>
-            <h2 id="about-heading">{profile.business}</h2>
-            <p className="actions-label">Connect with {profile.name}</p>
-            <nav className="action-grid" aria-label="Contact and social links">
-              {actions.map((action) => (
-                <ActionLink action={action} key={action.label} />
-              ))}
-              <button
-                className="action"
-                ref={qrButton}
-                type="button"
-                aria-label="Show QR code for this business card"
-                onClick={() => setQrOpen(true)}
-              >
-                <i className="fa-solid fa-qrcode" aria-hidden="true" />
-                <span>My QR code</span>
-              </button>
-              <button
-                className="action"
-                type="button"
-                aria-label="Install Jontech"
-                onClick={installCard}
-                ref={installButton}
-              >
-                <i className="fa-solid fa-download" aria-hidden="true" />
-                <span>Install</span>
-              </button>
-            </nav>
-            <p className="description">
-              {profile.business} helps individuals and small businesses build
-              their online presence with professional websites, digital
-              business cards, and practical digital support.
-            </p>
+            <section className="connect-section" aria-labelledby="about-heading">
+              <p className="section-kicker">Digital business card</p>
+              <h2 id="about-heading">Connect with {profile.name}</h2>
+              <nav className="action-grid" aria-label="Contact and profile actions">
+                {actions.map((action) => (
+                  <ActionLink action={action} key={action.label} />
+                ))}
+                <button
+                  className="action"
+                  ref={installButton}
+                  type="button"
+                  aria-label="Install Jontech"
+                  onClick={installCard}
+                >
+                  <i className="fa-solid fa-download" aria-hidden="true" />
+                  <span>Install</span>
+                </button>
+                <button
+                  className="action"
+                  ref={qrButton}
+                  type="button"
+                  aria-label="Show QR code for this business card"
+                  onClick={() => setQrOpen(true)}
+                >
+                  <i className="fa-solid fa-qrcode" aria-hidden="true" />
+                  <span>QR Code</span>
+                </button>
+              </nav>
+            </section>
+
+            <section className="showcase-frame" aria-labelledby="showcase-heading">
+              <div className="showcase-image">
+                <img
+                  src={products[0].image}
+                  alt={products[0].alt}
+                  loading="lazy"
+                />
+                <span>Website &amp; digital services</span>
+              </div>
+              <h2 id="showcase-heading">About {profile.name.split(" ")[0]}</h2>
+              <p className="description">
+                {profile.business} helps individuals and small businesses build
+                their online presence with professional websites, digital
+                business cards, and practical digital support.
+              </p>
+              <div className="contact-list" aria-label="Direct contact details">
+                <a href={`tel:${profile.phoneLink}`}>
+                  <i className="fa-solid fa-phone" aria-hidden="true" />
+                  <span><small>Direct call</small>{profile.phone}</span>
+                  <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" />
+                </a>
+                <a href={`mailto:${profile.email}`}>
+                  <i className="fa-regular fa-envelope" aria-hidden="true" />
+                  <span><small>Email</small>{profile.email}</span>
+                  <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" />
+                </a>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profile.address)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <i className="fa-solid fa-location-dot" aria-hidden="true" />
+                  <span><small>Business location</small>{profile.address}</span>
+                  <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" />
+                </a>
+              </div>
+            </section>
+
             <section className="product-section" aria-labelledby="products-heading">
               <div className="product-heading">
                 <div>
                   <p className="product-kicker">What we do</p>
-                  <h3 id="products-heading">Featured services</h3>
+                  <h2 id="products-heading">Featured services</h2>
                 </div>
                 <span className="sample-label">SAMPLE</span>
               </div>
               <div className="products-grid">
                 {products.map((product) => (
                   <article className="product-card" key={product.name}>
-                    <h4>{product.name}</h4>
+                    <h3>{product.name}</h3>
                     <img
                       className="product-image"
                       src={product.image}
@@ -578,33 +648,29 @@ function App() {
                 ))}
               </div>
             </section>
-            <div className="contact-strip" aria-label="Direct contact details">
-              <a href={`tel:${profile.phoneLink}`}>
-                <i className="fa-solid fa-phone" aria-hidden="true" />
-                {profile.phone}
-              </a>
-              <a href={`mailto:${profile.email}`}>
-                <i className="fa-regular fa-envelope" aria-hidden="true" />
-                {profile.email}
-              </a>
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profile.address)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <i className="fa-solid fa-location-dot" aria-hidden="true" />
-                {profile.address}
-              </a>
-            </div>
           </section>
+
+          <nav className="bottom-nav" aria-label="Card actions">
+            <button
+              className="bottom-nav-icon"
+              type="button"
+              aria-label="Share this business card"
+              onClick={shareCard}
+            >
+              <i className="fa-solid fa-arrow-up-from-bracket" aria-hidden="true" />
+            </button>
+            <a
+              className="contact-button"
+              href="/shop"
+              aria-label="Visit the shop"
+            >
+              <span>Visit Shop</span>
+              <span className="contact-button-icon">
+                <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" />
+              </span>
+            </a>
+          </nav>
         </article>
-        <p className="card-footer">
-          <span>Digital business card &middot; Share this card with others</span>
-          <button className="install-button" type="button" onClick={shareCard}>
-            <i className="fa-solid fa-arrow-up-from-bracket" aria-hidden="true" />
-            <span>Share card</span>
-          </button>
-        </p>
       </main>
 
       {installHelpOpen && (

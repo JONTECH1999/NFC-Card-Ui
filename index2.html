@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>David Chen - Digital Business Card</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: {
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                            950: '#022c22'
+                        },
+                        slate: {
+                            850: '#131c2e',
+                            950: '#070c14'
+                        }
+                    },
+                    boxShadow: {
+                        'glow-emerald': '0 0 25px -5px rgba(16, 185, 129, 0.35)',
+                        'glow-emerald-lg': '0 0 50px -10px rgba(16, 185, 129, 0.45)',
+                        'glass': '0 20px 50px rgba(0, 0, 0, 0.5)'
+                    },
+                    animation: {
+                        'pulse-subtle': 'pulseSlow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        pulseSlow: {
+                            '0%, 100%': { opacity: '0.4' },
+                            '50%': { opacity: '0.8' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-8px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <!-- QR Code Generator Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #070c14;
+            color: #f1f5f9;
+        }
+        .font-space {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-pill {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-border {
+            position: relative;
+        }
+        .glow-border::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.5), transparent, rgba(52, 211, 153, 0.2));
+            border-radius: inherit;
+            z-index: -1;
+            pointer-events: none;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(16, 185, 129, 0.3);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(16, 185, 129, 0.6);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-3 sm:p-6 overflow-x-hidden selection:bg-emerald-500 selection:text-black">
+
+    <!-- Ambient Background Glowing Orbs -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-emerald-500/15 rounded-full blur-[140px] animate-pulse-subtle"></div>
+        <div class="absolute bottom-10 left-1/3 w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[160px]"></div>
+        <div class="absolute top-1/3 right-10 w-[350px] h-[350px] bg-emerald-400/10 rounded-full blur-[130px]"></div>
+    </div>
+
+    <!-- Top Mode Switcher Bar (Device View Mode & Theme Controls) -->
+    <header class="relative z-20 w-full max-w-[420px] mb-4 flex items-center justify-between px-2">
+        <div class="flex items-center space-x-2">
+            <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
+                <i class="fa-solid fa-gem"></i>
+            </span>
+            <span class="text-xs font-bold tracking-widest text-slate-300 uppercase font-space">VIP Executive Pass</span>
+        </div>
+        <div class="flex items-center space-x-1 glass-pill p-1 rounded-full text-xs">
+            <button id="toggle-frame-btn" onclick="togglePhoneFrame()" class="px-3 py-1 rounded-full text-slate-300 hover:text-white transition-all duration-200 flex items-center space-x-1.5 bg-white/10 shadow-sm">
+                <i class="fa-solid fa-mobile-screen text-[10px] text-emerald-400"></i>
+                <span class="text-[11px] font-medium" id="frame-status-text">Frame: ON</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Card Container / Mockup Device Wrap -->
+    <main id="phone-container" class="relative z-10 w-full max-w-[410px] transition-all duration-500 rounded-[48px] p-2 sm:p-3 bg-gradient-to-b from-slate-800/40 via-slate-900/60 to-slate-950/80 border border-slate-800/80 shadow-glass glow-border">
+        
+        <!-- Phone Speaker & Camera Notch -->
+        <div id="phone-notch" class="w-full h-8 flex justify-between items-center px-6 pt-2 shrink-0 text-xs text-slate-400 font-medium">
+            <span id="live-time" class="text-[11px] font-semibold text-slate-300">10:09</span>
+            <!-- Dynamic Notch Center -->
+            <div class="w-20 h-4 bg-slate-950 border border-slate-800 rounded-full flex items-center justify-center space-x-2">
+                <div class="w-2 h-2 rounded-full bg-emerald-500/80 animate-ping"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-slate-700"></div>
+            </div>
+            <div class="flex items-center space-x-1.5 text-[10px] text-slate-300">
+                <i class="fa-solid fa-wifi"></i>
+                <i class="fa-solid fa-battery-three-quarters text-emerald-400"></i>
+            </div>
+        </div>
+
+        <!-- Phone Screen Content Wrap -->
+        <div class="w-full h-[760px] rounded-[38px] glass-panel overflow-hidden flex flex-col relative border border-slate-700/40">
+            
+            <!-- Top Hero Banner with Gradient -->
+            <div class="relative h-44 w-full overflow-hidden shrink-0">
+                <!-- Abstract Gradient Mesh -->
+                <div class="absolute inset-0 bg-gradient-to-br from-emerald-950 via-slate-900 to-slate-950"></div>
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-emerald-500/20 rounded-full blur-2xl"></div>
+                <div class="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:16px_16px] opacity-20"></div>
+
+                <!-- Verified Executive Badge Top Left -->
+                <div class="absolute top-4 left-4 flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-slate-900/80 border border-emerald-500/40 backdrop-blur-md">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-300">Verified Executive</span>
+                </div>
+
+                <!-- Company Logo Tag Top Right -->
+                <div class="absolute top-4 right-4 flex items-center space-x-1.5 px-3 py-1 rounded-full bg-slate-900/80 border border-slate-700 backdrop-blur-md">
+                    <i class="fa-solid fa-mountain text-emerald-400 text-xs"></i>
+                    <span class="text-xs font-bold tracking-wider text-white font-space">APEX</span>
+                </div>
+            </div>
+
+            <!-- Profile Overlay & Header Info -->
+            <div class="relative px-6 -mt-16 text-center z-10 shrink-0">
+                <!-- Avatar Container -->
+                <div class="relative inline-block">
+                    <div class="w-28 h-28 rounded-3xl p-1 bg-gradient-to-tr from-emerald-500 via-teal-400 to-slate-800 shadow-glow-emerald mx-auto relative group">
+                        <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=300&h=300" 
+                             alt="David Chen" 
+                             onerror="this.src='https://placehold.co/300x300/1e293b/34d399?text=David+Chen';"
+                             class="w-full h-full object-cover rounded-[22px] transition-transform duration-300 group-hover:scale-105">
+                    </div>
+                    <!-- Online Status Indicator -->
+                    <div class="absolute bottom-1 right-1 w-5 h-5 bg-slate-900 rounded-full p-0.5 flex items-center justify-center border border-slate-700">
+                        <div class="w-full h-full bg-emerald-500 rounded-full"></div>
+                    </div>
+                </div>
+
+                <!-- Name & Title -->
+                <h1 class="text-2xl font-extrabold text-white mt-3 tracking-tight font-space flex items-center justify-center space-x-1.5">
+                    <span>David Chen</span>
+                    <i class="fa-solid fa-circle-check text-emerald-400 text-base" title="Verified Profile"></i>
+                </h1>
+                <p class="text-xs font-semibold uppercase tracking-widest text-emerald-400 mt-0.5">Chief Operations Officer</p>
+                <p class="text-xs text-slate-400 font-medium mt-1 flex items-center justify-center space-x-1">
+                    <i class="fa-solid fa-building text-slate-500 text-[10px]"></i>
+                    <span>Apex Logistics Inc.</span>
+                    <span class="text-slate-600">•</span>
+                    <i class="fa-solid fa-location-dot text-slate-500 text-[10px]"></i>
+                    <span>San Francisco, CA</span>
+                </p>
+            </div>
+
+            <!-- Navigation Tabs Header -->
+            <div class="px-5 mt-4 shrink-0">
+                <div class="flex items-center justify-between p-1 rounded-2xl bg-slate-900/90 border border-slate-800/80 text-xs">
+                    <button onclick="switchTab('contact')" id="tab-btn-contact" class="flex-1 py-2 rounded-xl font-semibold transition-all duration-300 text-emerald-400 bg-slate-800/80 shadow-sm border border-emerald-500/20 flex items-center justify-center space-x-1.5">
+                        <i class="fa-solid fa-address-card"></i>
+                        <span>Contact</span>
+                    </button>
+                    <button onclick="switchTab('bio')" id="tab-btn-bio" class="flex-1 py-2 rounded-xl font-semibold text-slate-400 hover:text-white transition-all duration-300 flex items-center justify-center space-x-1.5">
+                        <i class="fa-solid fa-user-tie"></i>
+                        <span>Bio & Exp</span>
+                    </button>
+                    <button onclick="switchTab('qr')" id="tab-btn-qr" class="flex-1 py-2 rounded-xl font-semibold text-slate-400 hover:text-white transition-all duration-300 flex items-center justify-center space-x-1.5">
+                        <i class="fa-solid fa-qrcode"></i>
+                        <span>QR Code</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Scrollable Tab Content Container -->
+            <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+
+                <!-- TAB 1: CONTACT CARD & QUICK ACTIONS -->
+                <div id="tab-content-contact" class="space-y-4 transition-all duration-300">
+                    
+                    <!-- Quick Call / Email Action Grid -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <a href="tel:+15551234567" class="glass-card p-3.5 rounded-2xl flex items-center space-x-3 hover:border-emerald-500/50 hover:bg-emerald-500/10 transition-all duration-300 group">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-black transition-all">
+                                <i class="fa-solid fa-phone"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-slate-400 font-medium uppercase">Direct Call</p>
+                                <p class="text-xs font-bold text-white group-hover:text-emerald-400 transition-colors">Call Now</p>
+                            </div>
+                        </a>
+
+                        <a href="mailto:david.chen@apexlogistics.com" class="glass-card p-3.5 rounded-2xl flex items-center space-x-3 hover:border-emerald-500/50 hover:bg-emerald-500/10 transition-all duration-300 group">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-black transition-all">
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-slate-400 font-medium uppercase">Direct Email</p>
+                                <p class="text-xs font-bold text-white group-hover:text-emerald-400 transition-colors">Send Email</p>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Detailed Interactive Contact List -->
+                    <div class="glass-card rounded-2xl p-4 space-y-3.5 border border-slate-800">
+                        <p class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest font-space">Contact Details</p>
+                        
+                        <!-- Phone Item -->
+                        <div class="flex items-center justify-between group">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-300 group-hover:text-emerald-400 transition-colors">
+                                    <i class="fa-solid fa-mobile-button text-xs"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-slate-400">Mobile Phone</p>
+                                    <p class="text-xs font-semibold text-slate-200">+1 (555) 123-4567</p>
+                                </div>
+                            </div>
+                            <button onclick="copyText('+15551234567', 'Phone number copied!')" class="text-slate-500 hover:text-emerald-400 p-2 text-xs">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+
+                        <div class="h-[1px] bg-slate-800/80"></div>
+
+                        <!-- Email Item -->
+                        <div class="flex items-center justify-between group">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-300 group-hover:text-emerald-400 transition-colors">
+                                    <i class="fa-regular fa-envelope text-xs"></i>
+                                </div>
+                                <div class="truncate max-w-[190px]">
+                                    <p class="text-[10px] text-slate-400">Corporate Email</p>
+                                    <p class="text-xs font-semibold text-slate-200 truncate">david.chen@apexlogistics.com</p>
+                                </div>
+                            </div>
+                            <button onclick="copyText('david.chen@apexlogistics.com', 'Email copied!')" class="text-slate-500 hover:text-emerald-400 p-2 text-xs">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+
+                        <div class="h-[1px] bg-slate-800/80"></div>
+
+                        <!-- Website Item -->
+                        <div class="flex items-center justify-between group">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-300 group-hover:text-emerald-400 transition-colors">
+                                    <i class="fa-solid fa-globe text-xs"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-slate-400">Company Portal</p>
+                                    <a href="https://apexlogistics.com" target="_blank" class="text-xs font-semibold text-slate-200 hover:text-emerald-400 transition-colors">apexlogistics.com</a>
+                                </div>
+                            </div>
+                            <a href="https://apexlogistics.com" target="_blank" class="text-slate-500 hover:text-emerald-400 p-2 text-xs">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Social Networks Grid -->
+                    <div class="glass-card rounded-2xl p-4 border border-slate-800">
+                        <p class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest font-space mb-3">Executive Network</p>
+                        <div class="grid grid-cols-4 gap-2">
+                            <!-- LinkedIn -->
+                            <a href="https://linkedin.com" target="_blank" class="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-emerald-500/40 hover:bg-emerald-500/10 transition-all group">
+                                <i class="fa-brands fa-linkedin-in text-base text-slate-400 group-hover:text-emerald-400 group-hover:scale-110 transition-all"></i>
+                                <span class="text-[9px] text-slate-400 mt-1 font-medium">LinkedIn</span>
+                            </a>
+                            <!-- X (Twitter) -->
+                            <a href="https://x.com" target="_blank" class="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-emerald-500/40 hover:bg-emerald-500/10 transition-all group">
+                                <i class="fa-brands fa-x-twitter text-base text-slate-400 group-hover:text-emerald-400 group-hover:scale-110 transition-all"></i>
+                                <span class="text-[9px] text-slate-400 mt-1 font-medium">Twitter</span>
+                            </a>
+                            <!-- Facebook -->
+                            <a href="https://facebook.com" target="_blank" class="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-emerald-500/40 hover:bg-emerald-500/10 transition-all group">
+                                <i class="fa-brands fa-facebook-f text-base text-slate-400 group-hover:text-emerald-400 group-hover:scale-110 transition-all"></i>
+                                <span class="text-[9px] text-slate-400 mt-1 font-medium">Facebook</span>
+                            </a>
+                            <!-- Instagram -->
+                            <a href="https://instagram.com" target="_blank" class="flex flex-col items-center justify-center p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-emerald-500/40 hover:bg-emerald-500/10 transition-all group">
+                                <i class="fa-brands fa-instagram text-base text-slate-400 group-hover:text-emerald-400 group-hover:scale-110 transition-all"></i>
+                                <span class="text-[9px] text-slate-400 mt-1 font-medium">Instagram</span>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- TAB 2: BIO & EXPERIENCE -->
+                <div id="tab-content-bio" class="hidden space-y-4 transition-all duration-300">
+                    <!-- Executive Summary -->
+                    <div class="glass-card rounded-2xl p-4 border border-slate-800">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <i class="fa-solid fa-quote-left text-emerald-400 text-sm"></i>
+                            <p class="text-xs font-bold text-white font-space">Executive Summary</p>
+                        </div>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Accomplished Operations Executive with over 15+ years driving global supply chain resilience, fleet automation, and sustainable logistics infrastructure for Tier-1 enterprise organizations.
+                        </p>
+                    </div>
+
+                    <!-- Key Metrics Stats Row -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="glass-card p-3 rounded-2xl text-center border border-slate-800">
+                            <p class="text-lg font-black text-emerald-400 font-space">15+</p>
+                            <p class="text-[9px] text-slate-400 uppercase font-semibold">Years Exp.</p>
+                        </div>
+                        <div class="glass-card p-3 rounded-2xl text-center border border-slate-800">
+                            <p class="text-lg font-black text-emerald-400 font-space">$1.2B</p>
+                            <p class="text-[9px] text-slate-400 uppercase font-semibold">Volume Managed</p>
+                        </div>
+                        <div class="glass-card p-3 rounded-2xl text-center border border-slate-800">
+                            <p class="text-lg font-black text-emerald-400 font-space">99.4%</p>
+                            <p class="text-[9px] text-slate-400 uppercase font-semibold">On-Time Rate</p>
+                        </div>
+                    </div>
+
+                    <!-- Timeline Experience -->
+                    <div class="glass-card rounded-2xl p-4 border border-slate-800">
+                        <p class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest font-space mb-3">Career History</p>
+                        
+                        <div class="space-y-4 relative border-l border-slate-800 ml-2 pl-4">
+                            <!-- Timeline Item 1 -->
+                            <div class="relative group">
+                                <div class="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-slate-900"></div>
+                                <p class="text-[10px] font-semibold text-emerald-400">2020 - PRESENT</p>
+                                <p class="text-xs font-bold text-white">Chief Operations Officer</p>
+                                <p class="text-[11px] text-slate-400">Apex Logistics Inc.</p>
+                                <p class="text-[10px] text-slate-500 mt-1">Leading global logistics network & AI fleet dispatch integration.</p>
+                            </div>
+
+                            <!-- Timeline Item 2 -->
+                            <div class="relative group">
+                                <div class="absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full bg-slate-700 group-hover:bg-emerald-400 transition-colors ring-4 ring-slate-900"></div>
+                                <p class="text-[10px] font-semibold text-slate-500">2015 - 2020</p>
+                                <p class="text-xs font-bold text-slate-200">VP of Supply Chain Operations</p>
+                                <p class="text-[11px] text-slate-400">Global Freight Solutions</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: QR CODE GENERATOR & SCAN -->
+                <div id="tab-content-qr" class="hidden space-y-4 transition-all duration-300">
+                    <div class="glass-card rounded-2xl p-5 border border-slate-800 text-center flex flex-col items-center">
+                        <p class="text-xs font-bold text-white font-space mb-1">Scan To Connect</p>
+                        <p class="text-[11px] text-slate-400 mb-4">Point phone camera to quickly save David's digital profile</p>
+                        
+                        <!-- QR Code Wrapper -->
+                        <div class="p-3 bg-white rounded-2xl shadow-glow-emerald border-2 border-emerald-400/50 inline-block mb-3">
+                            <div id="qrcode"></div>
+                        </div>
+
+                        <p class="text-[10px] text-slate-400 font-medium flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+                            <span>Instant vCard Exchange System</span>
+                        </p>
+                    </div>
+
+                    <button onclick="shareCard()" class="w-full py-3 rounded-2xl bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition-all flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-share-nodes text-emerald-400"></i>
+                        <span>Share Contact Link</span>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Sticky Bottom CTA Section -->
+            <div class="p-4 bg-slate-950/90 border-t border-slate-800/80 shrink-0 z-20 space-y-2">
+                <button onclick="saveContact()" class="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:opacity-90 active:scale-[0.99] transition-all duration-200 rounded-2xl shadow-glow-emerald text-black font-extrabold text-xs uppercase tracking-wider flex items-center justify-center space-x-2 font-space">
+                    <i class="fa-solid fa-user-plus text-sm"></i>
+                    <span>Save to Contacts</span>
+                </button>
+            </div>
+
+            <!-- Mobile Home Bar Indicator -->
+            <div class="w-full h-4 bg-transparent flex items-center justify-center pb-1 shrink-0">
+                <div class="w-28 h-1 bg-slate-700/60 rounded-full"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Notification Toast Modal -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 glass-card border border-emerald-500/50 text-white px-5 py-3 rounded-2xl shadow-2xl text-xs font-semibold opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center space-x-2.5 backdrop-blur-xl">
+        <div class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs shrink-0">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <span id="toast-message" class="text-slate-200">Action performed successfully!</span>
+    </div>
+
+    <!-- Interactive JavaScript -->
+    <script>
+        // Initialize Live Time in Status Bar
+        function updateTime() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            hours = hours % 12 || 12;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            document.getElementById('live-time').textContent = `${hours}:${minutes}`;
+        }
+        updateTime();
+        setInterval(updateTime, 30000);
+
+        // Tab Switcher Logic
+        function switchTab(tabKey) {
+            const tabs = ['contact', 'bio', 'qr'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-btn-${t}`);
+                const content = document.getElementById(`tab-content-${t}`);
+                
+                if (t === tabKey) {
+                    btn.className = "flex-1 py-2 rounded-xl font-semibold transition-all duration-300 text-emerald-400 bg-slate-800/80 shadow-sm border border-emerald-500/20 flex items-center justify-center space-x-1.5";
+                    content.classList.remove('hidden');
+                } else {
+                    btn.className = "flex-1 py-2 rounded-xl font-semibold text-slate-400 hover:text-white transition-all duration-300 flex items-center justify-center space-x-1.5";
+                    content.classList.add('hidden');
+                }
+            });
+
+            if (tabKey === 'qr' && !window.qrGenerated) {
+                generateQRCode();
+            }
+        }
+
+        // Toggle Smartphone Mockup Frame
+        let isFrameOn = true;
+        function togglePhoneFrame() {
+            const container = document.getElementById('phone-container');
+            const notch = document.getElementById('phone-notch');
+            const statusText = document.getElementById('frame-status-text');
+
+            if (isFrameOn) {
+                container.classList.remove('rounded-[48px]', 'p-2', 'sm:p-3', 'shadow-glass', 'glow-border', 'border-slate-800/80', 'bg-gradient-to-b');
+                notch.classList.add('hidden');
+                statusText.textContent = 'Frame: OFF';
+                isFrameOn = false;
+            } else {
+                container.classList.add('rounded-[48px]', 'p-2', 'sm:p-3', 'shadow-glass', 'glow-border', 'border-slate-800/80', 'bg-gradient-to-b');
+                notch.classList.remove('hidden');
+                statusText.textContent = 'Frame: ON';
+                isFrameOn = true;
+            }
+        }
+
+        // Generate QR Code dynamically
+        function generateQRCode() {
+            const qrContainer = document.getElementById("qrcode");
+            qrContainer.innerHTML = "";
+            new QRCode(qrContainer, {
+                text: window.location.href,
+                width: 130,
+                height: 130,
+                colorDark : "#070c14",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+            window.qrGenerated = true;
+        }
+
+        // Toast Popup Helper
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            toastMsg.textContent = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+            }, 3000);
+        }
+
+        // Copy Text Helper
+        function copyText(text, successMsg) {
+            const dummy = document.createElement('textarea');
+            document.body.appendChild(dummy);
+            dummy.value = text;
+            dummy.select();
+            document.execCommand('copy');
+            document.body.removeChild(dummy);
+            showToast(successMsg);
+        }
+
+        // Download vCard Functionality
+        function saveContact() {
+            const vCardData = `BEGIN:VCARD
+VERSION:3.0
+FN:David Chen
+N:Chen;David;;;
+TITLE:Chief Operations Officer
+ORG:Apex Logistics Inc.
+TEL;TYPE=CELL,VOICE:+15551234567
+EMAIL;TYPE=INTERNET,WORK:david.chen@apexlogistics.com
+URL:https://apexlogistics.com
+ADR;TYPE=WORK:;;San Francisco;CA;;;
+NOTE:Verified Executive Profile - Apex Logistics Inc.
+END:VCARD`;
+
+            const blob = new Blob([vCardData], { type: 'text/vcard;charset=utf-8;' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'David_Chen_Executive.vcf');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            showToast('vCard downloaded! Import to your contacts.');
+        }
+
+        // Web Share API or Copy Fallback
+        function shareCard() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'David Chen - Digital Executive Card',
+                    text: 'Connect with David Chen, COO at Apex Logistics Inc.',
+                    url: window.location.href
+                }).catch(() => {
+                    copyText(window.location.href, 'Profile link copied to clipboard!');
+                });
+            } else {
+                copyText(window.location.href, 'Profile link copied to clipboard!');
+            }
+        }
+    </script>
+</body>
+</html>

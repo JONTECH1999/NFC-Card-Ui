@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linda Johnson - Digital Business Card</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        coral: {
+                            light: '#FF7B7B',
+                            DEFAULT: '#FF6464',
+                            dark: '#E85050',
+                            card: '#FFA3A3',
+                        },
+                        brand: {
+                            navy: '#070E20',
+                            btnDark: '#09132B'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #070E20;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Custom scrollbar for mobile frame */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Vibrant Coral Gradient */
+        .coral-gradient-bg {
+            background: linear-gradient(180deg, #FF7575 0%, #FF585D 100%);
+        }
+
+        /* Top Hero Gradient Fade */
+        .hero-overlay {
+            background: linear-gradient(180deg, rgba(255, 117, 117, 0.2) 0%, rgba(255, 95, 99, 0.85) 70%, #FF5B60 100%);
+        }
+    </style>
+</head>
+<body class="p-0 sm:p-4">
+
+    <!-- Main Container / Mobile Phone Wrapper -->
+    <div class="relative w-full max-w-[390px] h-[100vh] sm:h-[820px] coral-gradient-bg sm:rounded-[42px] shadow-2xl overflow-hidden flex flex-col border-0 sm:border-[8px] sm:border-slate-800">
+        
+        <!-- Phone Top Speaker/Camera notch simulation -->
+        <div class="hidden sm:flex justify-center pt-2.5 pb-1 z-30 absolute top-0 inset-x-0">
+            <div class="w-24 h-4 bg-slate-900 rounded-full flex items-center justify-center">
+                <div class="w-3 h-3 bg-slate-800 rounded-full mr-2"></div>
+                <div class="w-2 h-2 bg-slate-800 rounded-full"></div>
+            </div>
+        </div>
+
+        <!-- Scrollable Content Area -->
+        <div class="flex-1 overflow-y-auto no-scrollbar relative text-white pb-24 pt-4 sm:pt-6">
+            
+            <!-- Hero Photo Header with Gradient Overlay -->
+            <div class="relative w-full h-[360px] overflow-hidden">
+                <!-- Background Profile Image -->
+                <img 
+                    src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800&auto=format&fit=crop" 
+                    alt="Linda Johnson" 
+                    class="w-full h-full object-cover object-top"
+                    onerror="this.src='https://placehold.co/400x500/FF6464/FFFFFF?text=Linda+Johnson'"
+                />
+
+                <!-- Smooth Coral Gradient Overlay -->
+                <div class="absolute inset-0 hero-overlay flex flex-col justify-end p-6">
+                    <!-- Title & Name -->
+                    <h1 class="text-3xl font-bold leading-tight tracking-wide text-white drop-shadow-sm">
+                        Linda<br/>Johnson
+                    </h1>
+                    <p class="text-xs font-light text-white/90 mt-1 tracking-wider">
+                        Sr. Marketing Manager
+                    </p>
+
+                    <!-- Company Logo Branding -->
+                    <div class="flex items-center space-x-2 mt-4 opacity-95">
+                        <!-- Lightbulb Icon -->
+                        <div class="w-5 h-5 flex items-center justify-center">
+                            <i class="fa-regular fa-lightbulb text-white text-base"></i>
+                        </div>
+                        <div class="flex flex-col leading-none">
+                            <span class="text-[11px] font-bold tracking-widest text-white uppercase">GENIUS</span>
+                            <span class="text-[7px] tracking-widest text-white/80 uppercase">IT SOLUTIONS</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Action Buttons Bar (White Circles with Coral Icons) -->
+            <div class="px-6 py-4 flex items-center justify-between">
+                <!-- Phone -->
+                <a href="tel:+1234567890" class="w-13 h-13 w-12 h-12 rounded-full bg-white text-coral-dark flex items-center justify-center shadow-lg hover:bg-slate-100 transition-all active:scale-95">
+                    <i class="fa-solid fa-mobile-screen-button text-xl"></i>
+                </a>
+                <!-- Email -->
+                <a href="mailto:linda.johnson@example.com" class="w-12 h-12 rounded-full bg-white text-coral-dark flex items-center justify-center shadow-lg hover:bg-slate-100 transition-all active:scale-95">
+                    <i class="fa-regular fa-envelope text-xl"></i>
+                </a>
+                <!-- Chat / SMS -->
+                <a href="sms:+1234567890" class="w-12 h-12 rounded-full bg-white text-coral-dark flex items-center justify-center shadow-lg hover:bg-slate-100 transition-all active:scale-95">
+                    <i class="fa-regular fa-comment-dots text-xl"></i>
+                </a>
+                <!-- WhatsApp -->
+                <a href="https://wa.me/1234567890" target="_blank" rel="noopener noreferrer" class="w-12 h-12 rounded-full bg-white text-coral-dark flex items-center justify-center shadow-lg hover:bg-slate-100 transition-all active:scale-95">
+                    <i class="fa-brands fa-whatsapp text-2xl"></i>
+                </a>
+            </div>
+
+            <!-- Achievement Showcase Card Section -->
+            <div class="px-5 mt-1">
+                <div class="bg-[#FF888B]/60 backdrop-blur-md rounded-3xl p-5 border border-white/20 shadow-md">
+                    <!-- Heading -->
+                    <h2 class="text-xl font-bold text-center text-white tracking-wide">
+                        Achievement
+                    </h2>
+                    <!-- Subtitle -->
+                    <p class="text-xs text-center text-white/90 font-light mt-1 mb-4">
+                        Creative. Dedicated. Inquisitive.
+                    </p>
+
+                    <!-- Image Showcase Container -->
+                    <div class="w-full h-44 rounded-2xl overflow-hidden shadow-inner border border-white/10">
+                        <img 
+                            src="https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=800&auto=format&fit=crop" 
+                            alt="Achievement Stage Award" 
+                            class="w-full h-full object-cover"
+                            onerror="this.src='https://placehold.co/400x250/333333/FFFFFF?text=Stage+Presentation'"
+                        />
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Sticky Floating Bottom Navigation Bar -->
+        <div class="absolute bottom-4 left-4 right-4 z-20 flex items-center justify-between gap-2">
+            
+            <!-- Icon Action Buttons (Left) -->
+            <div class="flex items-center gap-2">
+                <!-- QR Code Button -->
+                <button onclick="toggleModal('qrModal')" class="w-11 h-11 bg-brand-navy text-white rounded-2xl flex items-center justify-center shadow-xl hover:bg-slate-900 transition-all active:scale-95 border border-slate-800">
+                    <i class="fa-solid fa-qrcode text-base"></i>
+                </button>
+                <!-- Share Button -->
+                <button onclick="shareCard()" class="w-11 h-11 bg-brand-navy text-white rounded-2xl flex items-center justify-center shadow-xl hover:bg-slate-900 transition-all active:scale-95 border border-slate-800">
+                    <i class="fa-solid fa-arrow-up-from-bracket text-base"></i>
+                </button>
+            </div>
+
+            <!-- Add to Contact Button (Right) -->
+            <button onclick="downloadVCard()" class="flex-1 bg-brand-navy text-white h-11 rounded-full px-4 flex items-center justify-between shadow-xl hover:bg-slate-900 transition-all active:scale-95 border border-slate-800">
+                <span class="text-xs font-semibold tracking-wide ml-2">Add to Contact</span>
+                <span class="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-white text-xs">
+                    <i class="fa-solid fa-plus"></i>
+                </span>
+            </button>
+        </div>
+
+        <!-- QR Code Modal Overlay -->
+        <div id="qrModal" class="hidden absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6 transition-opacity">
+            <div class="bg-white rounded-3xl p-6 w-full max-w-[280px] text-center shadow-2xl relative text-slate-800">
+                <button onclick="toggleModal('qrModal')" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600 w-8 h-8 flex items-center justify-center rounded-full">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+                <h3 class="text-lg font-bold mb-1">Scan QR Code</h3>
+                <p class="text-xs text-slate-500 mb-4">Share Linda's contact card</p>
+                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex justify-center mb-3">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://example.com/linda-johnson" alt="QR Code" class="w-40 h-40 rounded-lg">
+                </div>
+                <p class="text-[11px] text-slate-400">Point phone camera to scan</p>
+            </div>
+        </div>
+
+        <!-- Toast Notification Message -->
+        <div id="toast" class="hidden absolute top-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-xl z-50 flex items-center space-x-2 border border-slate-700">
+            <i class="fa-solid fa-circle-check text-emerald-400"></i>
+            <span id="toastMessage">Action completed!</span>
+        </div>
+
+    </div>
+
+    <script>
+        // Toggle Modal Display
+        function toggleModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.toggle('hidden');
+        }
+
+        // Copy Shareable Link
+        function shareCard() {
+            const dummyUrl = window.location.href;
+            
+            const el = document.createElement('textarea');
+            el.value = dummyUrl;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+
+            showToast('Card link copied to clipboard!');
+        }
+
+        // Download vCard Contact File
+        function downloadVCard() {
+            const vCardData = `BEGIN:VCARD
+VERSION:3.0
+FN:Linda Johnson
+TITLE:Sr. Marketing Manager
+ORG:Genius IT Solutions
+TEL;TYPE=CELL:+1234567890
+EMAIL:linda.johnson@example.com
+END:VCARD`;
+
+            const blob = new Blob([vCardData], { type: 'text/vcard;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'Linda_Johnson.vcf');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast('Contact file downloaded!');
+        }
+
+        // Show Temporary Toast Message
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            toast.classList.remove('hidden');
+
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>

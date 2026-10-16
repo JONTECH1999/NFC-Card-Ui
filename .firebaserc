@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "business-card-2b623"
-  }
+  },
+  "targets": {
+    "business-card-2b623": {
+      "hosting": {
+        "business-card-2": [
+          "business-card-2"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

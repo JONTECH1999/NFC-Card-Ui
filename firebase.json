@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "calling-card",
     "public": "dist",
     "ignore": [
       "firebase.json",
