@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0b1120" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="Jontech" />
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="icon" type="image/svg+xml" href="/jontech-icon.svg" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/jontech-icon-180.png" />
+    <meta name="apple-mobile-web-app-title" content="Calling Card" />
+    <link rel="manifest" href="/manifest.webmanifest?v=2" />
+    <link rel="icon" type="image/png" href="/callingcard-192.png?v=2" />
+    <link rel="apple-touch-icon" href="/callingcard-180.png?v=2" />
     <meta
       name="description"
-      content="Meet Aljon Alonzo of Jontech, Website & Digital Business Associate. Get in touch, find the business location, or connect online."
+      content="Meet Aljon Alonzo of Calling Card, Website & Digital Business Associate. Get in touch, find the business location, or connect online."
     />
-    <title>Aljon Alonzo | Jontech</title>
+    <title>Calling Card</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -25,15 +25,68 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
     <script>
+      // Capture early beforeinstallprompt event before React finishes mounting
+      window.deferredInstallPrompt = null;
+      window.addEventListener("beforeinstallprompt", function (e) {
+        e.preventDefault();
+        window.deferredInstallPrompt = e;
+        window.dispatchEvent(new CustomEvent("app-install-ready"));
+      });
+      window.addEventListener("appinstalled", function () {
+        window.deferredInstallPrompt = null;
+      });
+    </script>
+    <script>
       (function () {
         try {
           var saved = localStorage.getItem("nfc_card_theme");
-          if (saved === "light") {
-            document.documentElement.setAttribute("data-theme", "light");
-            var meta = document.querySelector('meta[name="theme-color"]');
-            if (meta) meta.setAttribute("content", "#f6f1e8");
-          } else {
-            document.documentElement.setAttribute("data-theme", "dark");
+          var validThemes = ["dark", "light", "red", "blue", "white", "emerald"];
+          var theme = validThemes.indexOf(saved) !== -1 ? saved : "dark";
+          try {
+            var userOverride = localStorage.getItem("nfc_card_user_theme");
+            var userBase = localStorage.getItem("nfc_card_user_base");
+            if (userOverride && userBase === theme && validThemes.indexOf(userOverride) !== -1) {
+              theme = userOverride;
+            }
+          } catch (e) {}
+          document.documentElement.setAttribute("data-theme", theme);
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) {
+            var colors = {
+              light: "#f4f0e8",
+              white: "#ffffff",
+              red: "#120406",
+              blue: "#040a18",
+              emerald: "#03140e",
+              dark: "#000000"
+            };
+            meta.setAttribute("content", colors[theme] || "#000000");
+          }
+
+          // Hydrate site title & favicon from cache immediately
+          var cachedTitle = localStorage.getItem("nfc_card_site_title");
+          if (cachedTitle) {
+            var isAdmin = window.location.pathname.indexOf("/admin") === 0;
+            document.title = isAdmin ? cachedTitle + " — Admin" : cachedTitle;
+          }
+          var cachedIcon = localStorage.getItem("nfc_card_site_icon");
+          if (cachedIcon) {
+            var oldLinks = document.querySelectorAll("link[rel*='icon']");
+            for (var i = 0; i < oldLinks.length; i++) {
+              oldLinks[i].remove();
+            }
+            var l1 = document.createElement("link");
+            l1.rel = "icon";
+            l1.href = cachedIcon;
+            document.head.appendChild(l1);
+            var l2 = document.createElement("link");
+            l2.rel = "shortcut icon";
+            l2.href = cachedIcon;
+            document.head.appendChild(l2);
+            var l3 = document.createElement("link");
+            l3.rel = "apple-touch-icon";
+            l3.href = cachedIcon;
+            document.head.appendChild(l3);
           }
         } catch (e) {
           document.documentElement.setAttribute("data-theme", "dark");

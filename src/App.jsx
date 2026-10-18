@@ -1,9 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
+import { supabase } from "./lib/supabase";
+import { applyFavicon, applySiteTitle } from "./lib/siteSettings";
 
-const profile = {
+/* ── Fallback data (used until Supabase loads) ── */
+const fallbackProfile = {
   name: "Aljon Alonzo",
-  business: "Jontech",
+  business: "Calling Card",
   role: "Website & Digital Business Associate",
   phone: "0951 364 4817",
   phoneLink: "+639513644817",
@@ -12,140 +15,602 @@ const profile = {
     "Brgy. 185, North B12, L9 Manggahan Road, Barangay 185, Caloocan, Metro Manila",
   facebook: "https://www.facebook.com/aljon11onsi/",
   youtube: "https://www.youtube.com/@aljonalonzo2195",
+  description:
+    "Calling Card helps individuals and small businesses build their online presence with professional websites, digital business cards, and practical digital support.",
+  eyebrow: "Your digital growth partner",
+  profile_image_url: "/aljon-profile.jfif",
+  theme_mode: (typeof window !== "undefined" && localStorage.getItem("nfc_card_theme")) || "dark",
 };
 
-const actions = [
-  {
-    label: "Call",
-    icon: "fa-solid fa-phone",
-    href: `tel:${profile.phoneLink}`,
-    ariaLabel: `Call ${profile.name} at ${profile.phone}`,
-  },
-  {
-    label: "Email",
-    icon: "fa-regular fa-envelope",
-    href: `mailto:${profile.email}`,
-    ariaLabel: `Email ${profile.name}`,
-  },
-  {
-    label: "Text",
-    icon: "fa-regular fa-comment-dots",
-    href: `sms:${profile.phoneLink}`,
-    ariaLabel: `Text ${profile.name}`,
-  },
-  {
-    label: "Location",
-    icon: "fa-solid fa-location-dot",
-    href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profile.address)}`,
-    ariaLabel: `Find ${profile.business} at ${profile.address}`,
-    external: true,
-  },
-  {
-    label: "Facebook",
-    icon: "fa-brands fa-facebook-f",
-    href: profile.facebook,
-    ariaLabel: `${profile.business} on Facebook`,
-    external: true,
-    social: true,
-  },
-  {
-    label: "YouTube",
-    icon: "fa-brands fa-youtube",
-    href: profile.youtube,
-    ariaLabel: `${profile.business} on YouTube`,
-    external: true,
-    social: true,
-  },
-];
-
-const products = [
+const fallbackProducts = [
   {
     name: "Website Design & Development",
-    image:
+    image_url:
       "https://images.unsplash.com/photo-1558655146-9f40138edfeb?auto=format&fit=crop&w=720&q=85",
     alt: "Brand identity colors and design materials",
   },
   {
     name: "Digital Business Cards",
-    image:
+    image_url:
       "https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=720&q=85",
     alt: "Social media campaign displayed on a phone",
   },
   {
     name: "Small Business Websites",
-    image:
+    image_url:
       "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=720&q=85",
     alt: "Team planning a marketing strategy together",
   },
   {
     name: "Online Store Setup",
-    image:
+    image_url:
       "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=720&q=85",
     alt: "Website analytics and design on a laptop",
   },
   {
     name: "Website Maintenance & Support",
-    image:
+    image_url:
       "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?auto=format&fit=crop&w=720&q=85",
     alt: "Camera prepared for professional content creation",
   },
 ];
 
-const demoLayouts = Array.from({ length: 12 }, (_, index) => {
-  const number = index + 1;
-
+/** Normalise a Supabase profiles row to the shape our UI expects. */
+function normalizeProfile(row) {
+  if (!row) return fallbackProfile;
   return {
-    number,
-    href: `/index${number}.html`,
+    name: row.name || fallbackProfile.name,
+    business: row.business || fallbackProfile.business,
+    role: row.role || fallbackProfile.role,
+    phone: row.phone || fallbackProfile.phone,
+    phoneLink: row.phone_link || fallbackProfile.phoneLink,
+    email: row.email || fallbackProfile.email,
+    address: row.address || fallbackProfile.address,
+    address_link: row.address_link || row.addressLink || "",
+    facebook: row.facebook || fallbackProfile.facebook,
+    youtube: row.youtube || fallbackProfile.youtube,
+    description: row.description || fallbackProfile.description,
+    eyebrow: row.eyebrow || fallbackProfile.eyebrow,
+    profile_image_url: row.profile_image_url || fallbackProfile.profile_image_url,
+    site_title: row.site_title || '',
+    site_icon_url: row.site_icon_url || '',
+    theme_mode: row.theme_mode || 'dark',
+    custom_links: (() => {
+      try {
+        if (row.custom_links) {
+          return typeof row.custom_links === 'string' ? JSON.parse(row.custom_links) : row.custom_links;
+        }
+        const cached = localStorage.getItem('nfc_card_custom_links');
+        if (cached) return JSON.parse(cached);
+      } catch (e) {}
+      return [];
+    })(),
   };
-});
+}
 
-function LayoutGallery() {
+/** Normalise Supabase product rows. */
+function normalizeProducts(rows) {
+  if (!rows || rows.length === 0) return fallbackProducts;
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    image_url: r.image_url,
+    alt: r.alt,
+    description: r.description,
+    price: r.price,
+    gallery: r.gallery,
+    is_featured: r.is_featured ?? true,
+  }));
+}
+
+function TouchThumbLayer() {
+  const [ripples, setRipples] = useState([]);
+
+  useEffect(() => {
+    function handlePointerDown(e) {
+      const x = e.clientX;
+      const y = e.clientY;
+      if (typeof x !== "number" || typeof y !== "number") return;
+
+      const newRipple = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        x,
+        y,
+      };
+
+      setRipples((prev) => [...prev.slice(-4), newRipple]);
+
+      setTimeout(() => {
+        setRipples((prev) => prev.filter((r) => r.id !== newRipple.id));
+      }, 600);
+    }
+
+    window.addEventListener("pointerdown", handlePointerDown, { passive: true });
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, []);
+
+  return (
+    <div className="touch-thumb-layer" aria-hidden="true">
+      {ripples.map((ripple) => (
+        <div
+          key={ripple.id}
+          className="touch-thumb-ripple"
+          style={{ left: ripple.x, top: ripple.y }}
+        >
+          <span className="touch-thumb-glow" />
+          <span className="touch-thumb-core" />
+          <span className="touch-thumb-ring" />
+          <span className="touch-thumb-ring touch-thumb-ring-2" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ImageLightbox({
+  images,
+  activeIndex,
+  onClose,
+  onNext,
+  onPrev,
+  onTouchStart,
+  onTouchEnd,
+}) {
+  if (activeIndex === null || !images || !images[activeIndex]) return null;
+
+  return (
+    <div
+      className="shop-lightbox-overlay"
+      role="dialog"
+      aria-modal="true"
+      onClick={onClose}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
+      <button
+        className="shop-lightbox-close"
+        type="button"
+        aria-label="Close preview"
+        onClick={onClose}
+      >
+        <i className="fa-solid fa-xmark" aria-hidden="true" />
+      </button>
+
+      {images.length > 1 && (
+        <div className="shop-lightbox-counter" onClick={(e) => e.stopPropagation()}>
+          <span>{activeIndex + 1} / {images.length}</span>
+        </div>
+      )}
+
+      {images.length > 1 && (
+        <button
+          className="shop-lightbox-nav shop-lightbox-prev"
+          type="button"
+          aria-label="Previous image"
+          onClick={onPrev}
+        >
+          <i className="fa-solid fa-chevron-left" aria-hidden="true" />
+        </button>
+      )}
+
+      <div
+        className="shop-lightbox-content"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <img
+          key={images[activeIndex]}
+          src={images[activeIndex]}
+          alt={`Slide ${activeIndex + 1}`}
+        />
+      </div>
+
+      {images.length > 1 && (
+        <button
+          className="shop-lightbox-nav shop-lightbox-next"
+          type="button"
+          aria-label="Next image"
+          onClick={onNext}
+        >
+          <i className="fa-solid fa-chevron-right" aria-hidden="true" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ProjectDetailModal({ project, profile, onClose, onOpenLightbox }) {
+  if (!project) return null;
+
+  function buildInquiryEmail() {
+    const subject = encodeURIComponent(`Project Inquiry: ${project.name}`);
+    const body = encodeURIComponent(
+      `Hi ${profile.name},\n\nI am interested in your project/service: ${project.name}.\n\nPlease let me know more details, pricing, and availability.\n\nThank you!`
+    );
+    return `mailto:${profile.email || ""}?subject=${subject}&body=${body}`;
+  }
+
+  const galleryImages = Array.isArray(project.gallery) ? project.gallery : [];
+
+  return (
+    <div
+      className="project-detail-modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="project-modal-title"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="project-detail-modal-card">
+        <button
+          className="project-modal-close"
+          type="button"
+          aria-label="Close project details"
+          onClick={onClose}
+        >
+          <i className="fa-solid fa-xmark" aria-hidden="true" />
+        </button>
+
+        {project.image_url && (
+          <div
+            className="project-modal-hero"
+            onClick={() => onOpenLightbox(0)}
+            title="Click to view full image"
+          >
+            <img src={project.image_url} alt={project.alt || project.name} />
+            <span className="project-modal-zoom-hint">
+              <i className="fa-solid fa-expand" aria-hidden="true" /> Zoom
+            </span>
+          </div>
+        )}
+
+        <div className="project-modal-body">
+          <p className="project-modal-eyebrow">{profile.business} • Featured Project</p>
+          <h2 id="project-modal-title" className="project-modal-title">{project.name}</h2>
+
+          {project.price && (
+            <p className="project-modal-price">{project.price}</p>
+          )}
+
+          <div className="project-modal-desc-section">
+            <h3>Description</h3>
+            <p className="project-modal-desc">
+              {project.description || "Contact us to learn more about this project and discuss your requirements."}
+            </p>
+          </div>
+
+          {galleryImages.length > 0 && (
+            <div className="project-modal-gallery-section">
+              <h3>More photos ({galleryImages.length})</h3>
+              <div className="project-modal-gallery-grid">
+                {galleryImages.map((imgUrl, idx) => (
+                  <div
+                    key={imgUrl || idx}
+                    className="project-modal-gallery-thumb"
+                    onClick={() => onOpenLightbox(project.image_url ? idx + 1 : idx)}
+                    title="Click to view photo"
+                  >
+                    <img src={imgUrl} alt={`${project.name} photo ${idx + 1}`} loading="lazy" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="project-modal-actions">
+            <a
+              className="project-modal-order-btn"
+              href={buildInquiryEmail()}
+            >
+              <i className="fa-regular fa-envelope" aria-hidden="true" />
+              <span>Inquire / Order</span>
+            </a>
+            <a
+              className="project-modal-shop-btn"
+              href="/shop"
+            >
+              <i className="fa-solid fa-store" aria-hidden="true" />
+              <span>Visit Shop</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProductShop({ profile, products: initialProducts }) {
+  const [shopProducts, setShopProducts] = useState(initialProducts);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(null); // index in allImages
+  const touchStartX = useRef(null);
+
+  // Compute all viewable images for the selected product (main image + gallery)
+  const allImages = selectedProduct
+    ? [
+        ...(selectedProduct.image_url ? [selectedProduct.image_url] : []),
+        ...(Array.isArray(selectedProduct.gallery) ? selectedProduct.gallery : []),
+      ]
+    : [];
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadAllProducts() {
+      try {
+        const { data } = await supabase
+          .from("products")
+          .select("*")
+          .order("sort_order");
+        if (!cancelled && data && data.length > 0) setShopProducts(data);
+      } catch (err) {
+        console.error("Failed to load shop products:", err);
+      }
+    }
+    loadAllProducts();
+    return () => { cancelled = true; };
+  }, []);
+
+  function buildOrderEmail(productName) {
+    const subject = encodeURIComponent('Order Inquiry: ' + productName);
+    const body = encodeURIComponent(
+      'Hi ' + profile.name + ',\n\n' +
+      'I\'m interested in ordering: ' + productName + '\n\n' +
+      'Here are my requirements:\n- \n\n' +
+      'Please let me know the pricing and availability.\n\n' +
+      'Thank you!'
+    );
+    return 'mailto:' + (profile.email || '') + '?subject=' + subject + '&body=' + body;
+  }
+
+  function handleOrderEmailClick(e, productName) {
+    e.preventDefault();
+    const mailtoUrl = buildOrderEmail(productName);
+    window.location.href = mailtoUrl;
+  }
+
+  // Synchronize browser history and popstate so phone back button works step-by-step:
+  // Step 3 (Image Lightbox) -> Step 2 (Product Details) -> Step 1 (Shop List) -> Main Page
+  useEffect(() => {
+    function handlePopState() {
+      const hash = window.location.hash;
+      if (hash.startsWith("#product-")) {
+        // We are on a product page, close lightbox if open
+        setActiveImageIndex(null);
+        const productId = hash.replace("#product-", "");
+        const found = shopProducts.find((p) => String(p.id || p.name) === productId);
+        if (found) {
+          setSelectedProduct(found);
+        }
+      } else {
+        // Back to shop list: close both lightbox and product
+        setActiveImageIndex(null);
+        setSelectedProduct(null);
+      }
+    }
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [shopProducts]);
+
+  function openProduct(product) {
+    setSelectedProduct(product);
+    setActiveImageIndex(null);
+    const productKey = encodeURIComponent(String(product.id || product.name));
+    window.history.pushState({ view: "product", id: productKey }, "", `#product-${productKey}`);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function openLightbox(index) {
+    setActiveImageIndex(index);
+    const currentHash = window.location.hash || "#product";
+    window.history.pushState({ view: "lightbox" }, "", `${currentHash}-image`);
+  }
+
+  function closeLightbox() {
+    if (activeImageIndex !== null) {
+      if (window.location.hash.endsWith("-image")) {
+        window.history.back();
+      } else {
+        setActiveImageIndex(null);
+      }
+    }
+  }
+
+  function backToProducts() {
+    if (window.location.hash) {
+      window.history.back();
+    } else {
+      setSelectedProduct(null);
+      setActiveImageIndex(null);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
+  function nextImage(e) {
+    if (e) e.stopPropagation();
+    if (allImages.length <= 1) return;
+    setActiveImageIndex((prev) => (prev + 1) % allImages.length);
+  }
+
+  function prevImage(e) {
+    if (e) e.stopPropagation();
+    if (allImages.length <= 1) return;
+    setActiveImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+  }
+
+  // Handle keyboard arrows (Left / Right / Esc)
+  useEffect(() => {
+    if (activeImageIndex === null) return;
+    function handleKeyDown(e) {
+      if (e.key === "ArrowRight") nextImage();
+      else if (e.key === "ArrowLeft") prevImage();
+      else if (e.key === "Escape") setActiveImageIndex(null);
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeImageIndex, allImages.length]);
+
+  // Touch Swipe Handlers for mobile gallery slide
+  function handleTouchStart(e) {
+    touchStartX.current = e.touches[0].clientX;
+  }
+
+  function handleTouchEnd(e) {
+    if (touchStartX.current === null) return;
+    const diff = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(diff) > 40) {
+      if (diff < 0) nextImage(); // Swiped left -> next
+      else prevImage();         // Swiped right -> prev
+    }
+    touchStartX.current = null;
+  }
+
   return (
     <main className="shop-placeholder">
-      <header className="layout-gallery-header">
-        <a className="layout-gallery-back" href="/">
-          <i className="fa-solid fa-arrow-left" aria-hidden="true" />
-          <span>Back to business card</span>
-        </a>
-        <p className="layout-gallery-eyebrow">Jontech design collection</p>
-        <h1>Choose your digital card design</h1>
-        <p className="layout-gallery-description">
-          Browse the mini previews, then select View layout to open a complete
-          card.
-        </p>
-      </header>
+      <TouchThumbLayer />
+      {selectedProduct && (
+        <section className="shop-product-page" aria-labelledby="shop-product-title">
+          <button
+            className="shop-product-back"
+            type="button"
+            onClick={backToProducts}
+          >
+            <i className="fa-solid fa-arrow-left" aria-hidden="true" />
+            <span>Back to products</span>
+          </button>
 
-      <section className="layout-gallery-grid" aria-label="Available layouts">
-        {demoLayouts.map(({ number, href }) => (
-          <article className="layout-preview-card" key={number}>
-            <div className="layout-preview-frame">
-              <iframe
-                src={href}
-                title={`Preview of layout ${number}`}
-                loading="lazy"
-                scrolling="no"
-                tabIndex={-1}
+          <article className="shop-product-full">
+            <div
+              className="shop-product-full-image"
+              onClick={() => openLightbox(0)}
+              style={{ cursor: "pointer" }}
+              title="Click to view full image"
+            >
+              <img
+                src={selectedProduct.image_url}
+                alt={selectedProduct.alt || selectedProduct.name}
               />
             </div>
-            <div className="layout-preview-details">
-              <div>
-                <p className="layout-preview-label">DESIGN {number.toString().padStart(2, "0")}</p>
-                <h2>Layout {number}</h2>
+            <div className="shop-product-full-content">
+              <p className="layout-gallery-eyebrow">{profile.business} product</p>
+              <h1 id="shop-product-title">{selectedProduct.name}</h1>
+              {selectedProduct.price && (
+                <p className="shop-product-full-price">{selectedProduct.price}</p>
+              )}
+              <div className="shop-product-full-description">
+                <h2>Description</h2>
+                <p>
+                  {selectedProduct.description ||
+                    "Contact us to learn more about this product and discuss your requirements."}
+                </p>
               </div>
               <a
-                className="layout-preview-link"
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
+                className="shop-order-btn shop-product-full-order"
+                href={buildOrderEmail(selectedProduct.name)}
+                onClick={(e) => handleOrderEmailClick(e, selectedProduct.name)}
+                aria-label={`Email to order ${selectedProduct.name}`}
               >
-                View layout
-                <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" />
+                <i className="fa-regular fa-envelope" aria-hidden="true" />
+                <span>Email to Order</span>
               </a>
             </div>
           </article>
-        ))}
-      </section>
+
+          {selectedProduct.gallery?.length > 0 && (
+            <section className="shop-product-gallery" aria-label="Product gallery">
+              <h2>More photos</h2>
+              <div className="shop-product-gallery-grid">
+                {selectedProduct.gallery.map((url, i) => (
+                  <div
+                    className="shop-product-gallery-item"
+                    key={url || i}
+                    onClick={() => {
+                      // Main image is index 0 if it exists, so gallery starts at index 1 (or 0 if no main image)
+                      const targetIdx = selectedProduct.image_url ? i + 1 : i;
+                      openLightbox(targetIdx);
+                    }}
+                    style={{ cursor: "pointer" }}
+                    title="Click to zoom image"
+                  >
+                    <img
+                      src={url}
+                      alt={`${selectedProduct.name}, photo ${i + 1}`}
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </section>
+      )}
+
+      {/* Lightbox / Fullscreen Image Viewer Modal with Slide Features */}
+      <ImageLightbox
+        images={allImages}
+        activeIndex={activeImageIndex}
+        onClose={closeLightbox}
+        onNext={nextImage}
+        onPrev={prevImage}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      />
+
+      {!selectedProduct && (
+        <>
+          <header className="layout-gallery-header">
+            <a className="layout-gallery-back" href="/">
+              <i className="fa-solid fa-arrow-left" aria-hidden="true" />
+              <span>Back to business card</span>
+            </a>
+            <p className="layout-gallery-eyebrow">{profile.business} products &amp; services</p>
+            <h1>Our Products &amp; Services</h1>
+            <p className="layout-gallery-description">
+              Browse our offerings below. Tap <strong>View Product</strong> for
+              details or <strong>Email to Order</strong> to get in touch.
+            </p>
+          </header>
+
+          <section className="shop-products-grid" aria-label="Products and services">
+            {shopProducts.map((product, idx) => (
+              <article className="shop-product-card" key={product.id || idx}>
+                <div className="shop-product-image-wrap">
+                  <img
+                    src={product.image_url}
+                    alt={product.alt || product.name}
+                    loading="lazy"
+                  />
+                </div>
+                <div className="shop-product-details">
+                  <h2>{product.name}</h2>
+                  {product.price && <p className="shop-product-price">{product.price}</p>}
+                  <div className="shop-product-buttons">
+                    <button
+                      className="shop-view-btn"
+                      type="button"
+                      onClick={() => openProduct(product)}
+                    >
+                      <i className="fa-solid fa-eye" aria-hidden="true" />
+                      <span>View Product</span>
+                    </button>
+                    <a
+                      className="shop-order-btn"
+                      href={buildOrderEmail(product.name)}
+                      onClick={(e) => handleOrderEmailClick(e, product.name)}
+                      aria-label={`Email to order ${product.name}`}
+                    >
+                      <i className="fa-regular fa-envelope" aria-hidden="true" />
+                      <span>Email to Order</span>
+                    </a>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </section>
+        </>
+      )}
     </main>
   );
 }
@@ -167,7 +632,7 @@ function ActionLink({ action }) {
 }
 
 function getInstallGuide() {
-  const userAgent = navigator.userAgent;
+  const userAgent = navigator.userAgent || "";
   const isIOS =
     /iPad|iPhone|iPod/.test(userAgent) ||
     (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -176,61 +641,302 @@ function getInstallGuide() {
 
   if (isIOS) {
     return {
-      browser: "On iPhone or iPad",
+      device: "ios",
+      browser: "iPhone & iPad (Safari)",
+      subtitle: "Install in 2 quick taps — no app store needed!",
       steps: [
-        "Open this page in Safari.",
-        "Tap the Share button.",
-        "Choose Add to Home Screen, then tap Add.",
+        {
+          num: 1,
+          icon: "fa-solid fa-arrow-up-from-bracket",
+          title: "Tap the Share button",
+          detail: "Look at the bottom toolbar of Safari and tap the Share icon (square with arrow pointing up).",
+        },
+        {
+          num: 2,
+          icon: "fa-regular fa-square-plus",
+          title: "Select 'Add to Home Screen'",
+          detail: "Scroll down the menu slightly and tap 'Add to Home Screen'.",
+        },
+        {
+          num: 3,
+          icon: "fa-solid fa-check",
+          title: "Tap 'Add' at the top right",
+          detail: "Tap Add in the top-right corner. The app icon will appear right on your home screen!",
+        },
       ],
     };
   }
 
   if (isAndroid) {
     return {
-      browser: "On Android",
+      device: "android",
+      browser: "Android (Chrome / Samsung Internet)",
+      subtitle: "Add this card directly to your home screen",
       steps: [
-        "Open this page in Chrome or your preferred browser.",
-        "Open the browser menu (⋮).",
-        "Choose Install app or Add to Home screen, then confirm.",
+        {
+          num: 1,
+          icon: "fa-solid fa-ellipsis-vertical",
+          title: "Tap the Menu button (⋮)",
+          detail: "Tap the 3 dots at the top right (or bottom right in Samsung Internet).",
+        },
+        {
+          num: 2,
+          icon: "fa-solid fa-download",
+          title: "Tap 'Install app' or 'Add to Home screen'",
+          detail: "Select Install app or Add to Home screen from the dropdown menu.",
+        },
+        {
+          num: 3,
+          icon: "fa-solid fa-check",
+          title: "Tap 'Install' or 'Add'",
+          detail: "Confirm to place the card icon right on your phone's home screen alongside your apps.",
+        },
       ],
     };
   }
 
   if (isSafari) {
     return {
-      browser: "In Safari on Mac",
+      device: "mac-safari",
+      browser: "Mac (Safari)",
+      subtitle: "Add to your Mac Dock",
       steps: [
-        "Open the File menu.",
-        "Choose Add to Dock.",
-        "Confirm to add Jontech to your Dock and apps.",
+        {
+          num: 1,
+          icon: "fa-solid fa-window-maximize",
+          title: "Open the File menu",
+          detail: "Click File in the menu bar at the top of your screen.",
+        },
+        {
+          num: 2,
+          icon: "fa-solid fa-plus",
+          title: "Choose 'Add to Dock'",
+          detail: "Select Add to Dock, then confirm to launch it as a standalone app.",
+        },
       ],
     };
   }
 
   return {
-    browser: "On this computer",
+    device: "desktop",
+    browser: "Computer (Chrome / Edge / Brave)",
+    subtitle: "Install as a desktop application",
     steps: [
-      "Open this page in Chrome or Microsoft Edge.",
-      "Select the install icon in the address bar, or open the browser menu.",
-      "Choose Install page as app or Install Jontech, then confirm.",
+      {
+        num: 1,
+        icon: "fa-solid fa-download",
+        title: "Click the Install icon in the address bar",
+        detail: "Look for the install monitor/arrow icon on the right side of your browser URL bar.",
+      },
+      {
+        num: 2,
+        icon: "fa-solid fa-check",
+        title: "Click 'Install'",
+        detail: "Confirm to open this digital card in its own standalone app window.",
+      },
     ],
   };
 }
 
+/** Helper to resolve the clickable map URL from profile */
+function resolveMapUrl(profile) {
+  if (profile.address_link && profile.address_link.trim()) {
+    return profile.address_link.trim();
+  }
+  if (profile.address && /^https?:\/\//i.test(profile.address.trim())) {
+    return profile.address.trim();
+  }
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profile.address || "")}`;
+}
+
+/** Helper to resolve an icon class for custom social/media links if not specified */
+function resolveCustomIcon(icon, label = "", url = "") {
+  if (icon && icon.trim()) return icon.trim();
+  const text = `${label} ${url}`.toLowerCase();
+  if (text.includes("tiktok")) return "fa-brands fa-tiktok";
+  if (text.includes("facebook") || text.includes("fb.")) return "fa-brands fa-facebook-f";
+  if (text.includes("instagram") || text.includes("ig.")) return "fa-brands fa-instagram";
+  if (text.includes("youtube")) return "fa-brands fa-youtube";
+  if (text.includes("linkedin")) return "fa-brands fa-linkedin-in";
+  if (text.includes("whatsapp") || text.includes("wa.me")) return "fa-brands fa-whatsapp";
+  if (text.includes("telegram") || text.includes("t.me")) return "fa-brands fa-telegram";
+  if (text.includes("twitter") || text.includes("x.com")) return "fa-brands fa-x-twitter";
+  if (text.includes("shopee")) return "fa-solid fa-bag-shopping";
+  if (text.includes("lazada")) return "fa-solid fa-cart-shopping";
+  if (text.includes("viber")) return "fa-brands fa-viber";
+  if (text.includes("github")) return "fa-brands fa-github";
+  return "fa-solid fa-globe";
+}
+
+/** Build the action buttons array from a profile object. */
+function buildActions(profile) {
+  const mapUrl = resolveMapUrl(profile);
+  const baseActions = [
+    {
+      label: "Call",
+      icon: "fa-solid fa-phone",
+      href: `tel:${profile.phoneLink}`,
+      ariaLabel: `Call ${profile.name} at ${profile.phone}`,
+    },
+    {
+      label: "Email",
+      icon: "fa-regular fa-envelope",
+      href: `mailto:${profile.email}`,
+      ariaLabel: `Email ${profile.name}`,
+    },
+    {
+      label: "Text",
+      icon: "fa-regular fa-comment-dots",
+      href: `sms:${profile.phoneLink}`,
+      ariaLabel: `Text ${profile.name}`,
+    },
+    {
+      label: "Location",
+      icon: "fa-solid fa-location-dot",
+      href: mapUrl,
+      ariaLabel: `Find ${profile.business} at ${profile.address}`,
+      external: true,
+    },
+    {
+      label: "Facebook",
+      icon: "fa-brands fa-facebook-f",
+      href: profile.facebook,
+      ariaLabel: `${profile.business} on Facebook`,
+      external: true,
+      social: true,
+    },
+    {
+      label: "YouTube",
+      icon: "fa-brands fa-youtube",
+      href: profile.youtube,
+      ariaLabel: `${profile.business} on YouTube`,
+      external: true,
+      social: true,
+    },
+  ];
+
+  // Map any custom links (TikTok, another FB page, Instagram, LinkedIn, etc.)
+  const customLinksList = Array.isArray(profile.custom_links)
+    ? profile.custom_links
+        .filter((item) => item && (item.label || item.url))
+        .map((item) => ({
+          label: item.label || "Link",
+          icon: resolveCustomIcon(item.icon, item.label, item.url),
+          href: item.url ? (item.url.startsWith("http") ? item.url : `https://${item.url}`) : "#",
+          ariaLabel: `${item.label || "Link"} for ${profile.business}`,
+          external: true,
+          social: true,
+        }))
+    : [];
+
+  return [...baseActions, ...customLinksList];
+}
+
 function App() {
+  /* ── Supabase data ── */
+  const [profile, setProfile] = useState(fallbackProfile);
+  const [allProducts, setAllProducts] = useState(fallbackProducts);
+  const [dataReady, setDataReady] = useState(false);
+
+  /* Featured products for the main card, all products for the shop */
+  const featuredProducts = allProducts.filter((p) => p.is_featured !== false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadData() {
+      try {
+        const [profileRes, productsRes] = await Promise.all([
+          supabase.from("profiles").select("*").limit(1).single(),
+          supabase.from("products").select("*").order("sort_order"),
+        ]);
+
+        if (cancelled) return;
+
+        if (profileRes.data) {
+          const norm = normalizeProfile(profileRes.data);
+          setProfile(norm);
+          if (norm.theme_mode) {
+            try {
+              localStorage.setItem("nfc_card_theme", norm.theme_mode);
+            } catch (e) {}
+          }
+          if (norm.site_title) {
+            try {
+              localStorage.setItem("nfc_card_site_title", norm.site_title);
+            } catch (e) {}
+          }
+          if (norm.site_icon_url) {
+            try {
+              localStorage.setItem("nfc_card_site_icon", norm.site_icon_url);
+            } catch (e) {}
+          }
+          if (Array.isArray(norm.custom_links)) {
+            try {
+              localStorage.setItem("nfc_card_custom_links", JSON.stringify(norm.custom_links));
+            } catch (e) {}
+          }
+        }
+        if (productsRes.data) setAllProducts(normalizeProducts(productsRes.data));
+      } catch (err) {
+        console.error("Failed to load data from Supabase:", err);
+        // Fallback data is already set
+      } finally {
+        if (!cancelled) setDataReady(true);
+      }
+    }
+
+    loadData();
+    return () => { cancelled = true; };
+  }, []);
+
+  /* ── Dynamic browser tab title & favicon ── */
+  useEffect(() => {
+    if (profile.site_title) {
+      applySiteTitle(profile.site_title, false);
+    }
+    if (profile.site_icon_url) {
+      applyFavicon(profile.site_icon_url);
+    }
+  }, [profile.site_title, profile.site_icon_url]);
+
+  const actions = buildActions(profile);
+
   const [introPhase, setIntroPhase] = useState("loading");
   const [tapRipple, setTapRipple] = useState(null);
   const [qrOpen, setQrOpen] = useState(false);
   const [installHelpOpen, setInstallHelpOpen] = useState(false);
   const [toast, setToast] = useState("");
   const [installPrompt, setInstallPrompt] = useState(null);
-  const [theme, setTheme] = useState(() => {
+  // Active theme is driven by profile's permanent theme_mode (with paired dark/light toggle)
+  const baseTheme = profile.theme_mode || "dark";
+  const [themeOverride, setThemeOverride] = useState(() => {
     try {
-      return localStorage.getItem("nfc_card_theme") || "dark";
-    } catch {
-      return "dark";
-    }
+      const stored = localStorage.getItem("nfc_card_user_theme");
+      const storedBase = localStorage.getItem("nfc_card_user_base");
+      const currentBase = profile.theme_mode || "dark";
+      if (stored && storedBase === currentBase) {
+        return stored;
+      }
+    } catch (e) {}
+    return null;
   });
+
+  const activeTheme = themeOverride || baseTheme;
+  const isLightMode = activeTheme === "light" || activeTheme === "white";
+
+  // When profile.theme_mode changes from admin, clear user override if admin changed the base
+  useEffect(() => {
+    try {
+      const storedBase = localStorage.getItem("nfc_card_user_base");
+      if (storedBase && storedBase !== baseTheme) {
+        localStorage.removeItem("nfc_card_user_theme");
+        localStorage.removeItem("nfc_card_user_base");
+        setThemeOverride(null);
+      }
+    } catch (e) {}
+  }, [baseTheme]);
+
   const toastTimer = useRef(null);
   const rippleTimer = useRef(null);
   const pageRef = useRef(null);
@@ -240,38 +946,164 @@ function App() {
   const installCloseButton = useRef(null);
   const installHelpWasOpen = useRef(false);
 
+  /* ── Project Details Modal & Lightbox State (Main Card) ── */
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [activeProjectImageIndex, setActiveProjectImageIndex] = useState(null);
+  const projectTouchStartX = useRef(null);
+
+  const projectImages = selectedProject
+    ? [
+        ...(selectedProject.image_url ? [selectedProject.image_url] : []),
+        ...(Array.isArray(selectedProject.gallery) ? selectedProject.gallery : []),
+      ]
+    : [];
+
+  // Synchronize browser history and popstate on Main Card:
+  // Step 2 (Project Image Lightbox) -> Step 1 (Project Details Modal) -> Main Card
+  useEffect(() => {
+    function handleMainPopState() {
+      const hash = window.location.hash;
+      if (hash.startsWith("#project-")) {
+        // Project modal open, lightbox closed
+        setActiveProjectImageIndex(null);
+        const projectId = hash.replace("#project-", "");
+        const found = allProducts.find((p) => String(p.id || p.name) === projectId);
+        if (found) {
+          setSelectedProject(found);
+        }
+      } else {
+        // Back to main card: close both lightbox and project modal
+        setActiveProjectImageIndex(null);
+        setSelectedProject(null);
+      }
+    }
+
+    window.addEventListener("popstate", handleMainPopState);
+    return () => window.removeEventListener("popstate", handleMainPopState);
+  }, [allProducts]);
+
+  function openProjectModal(product) {
+    setSelectedProject(product);
+    setActiveProjectImageIndex(null);
+    const projectKey = encodeURIComponent(String(product.id || product.name));
+    window.history.pushState({ view: "project", id: projectKey }, "", `#project-${projectKey}`);
+  }
+
+  function closeProjectModal() {
+    if (selectedProject) {
+      if (window.location.hash) {
+        window.history.back();
+      } else {
+        setSelectedProject(null);
+        setActiveProjectImageIndex(null);
+      }
+    }
+  }
+
+  function openProjectLightbox(index) {
+    setActiveProjectImageIndex(index);
+    const currentHash = window.location.hash || "#project";
+    window.history.pushState({ view: "project-lightbox" }, "", `${currentHash}-image`);
+  }
+
+  function closeProjectLightbox() {
+    if (activeProjectImageIndex !== null) {
+      if (window.location.hash.endsWith("-image")) {
+        window.history.back();
+      } else {
+        setActiveProjectImageIndex(null);
+      }
+    }
+  }
+
+  function nextProjectImage(e) {
+    if (e) e.stopPropagation();
+    if (projectImages.length <= 1) return;
+    setActiveProjectImageIndex((prev) => (prev + 1) % projectImages.length);
+  }
+
+  function prevProjectImage(e) {
+    if (e) e.stopPropagation();
+    if (projectImages.length <= 1) return;
+    setActiveProjectImageIndex((prev) => (prev - 1 + projectImages.length) % projectImages.length);
+  }
+
+  function handleProjectTouchStart(e) {
+    projectTouchStartX.current = e.touches[0].clientX;
+  }
+
+  function handleProjectTouchEnd(e) {
+    if (projectTouchStartX.current === null) return;
+    const diff = e.changedTouches[0].clientX - projectTouchStartX.current;
+    if (Math.abs(diff) > 40) {
+      if (diff < 0) nextProjectImage();
+      else prevProjectImage();
+    }
+    projectTouchStartX.current = null;
+  }
+
+  useEffect(() => {
+    if (activeProjectImageIndex === null) return;
+    function handleKeyDown(e) {
+      if (e.key === "ArrowRight") nextProjectImage();
+      else if (e.key === "ArrowLeft") prevProjectImage();
+      else if (e.key === "Escape") setActiveProjectImageIndex(null);
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeProjectImageIndex, projectImages.length]);
+
+  useEffect(() => {
+    if (!selectedProject || activeProjectImageIndex !== null) return;
+    function handleKeyDown(e) {
+      if (e.key === "Escape") setSelectedProject(null);
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedProject, activeProjectImageIndex]);
+
   useLayoutEffect(() => {
     window.history.scrollRestoration = "manual";
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, []);
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
+    document.documentElement.setAttribute("data-theme", activeTheme);
+    if (document.body) {
+      document.body.setAttribute("data-theme", activeTheme);
+    }
     const metaTheme = document.querySelector('meta[name="theme-color"]');
     if (metaTheme) {
-      metaTheme.setAttribute(
-        "content",
-        theme === "light" ? "#f6f1e8" : "#0b1120"
-      );
+      const colors = {
+        light: "#f4f0e8",
+        white: "#ffffff",
+        red: "#120406",
+        blue: "#040a18",
+        emerald: "#03140e",
+        dark: "#000000",
+      };
+      metaTheme.setAttribute("content", colors[activeTheme] || "#000000");
     }
-  }, [theme]);
+  }, [activeTheme]);
 
   function toggleTheme() {
-    const nextTheme = theme === "light" ? "dark" : "light";
-    setTheme(nextTheme);
+    let nextTheme;
+    if (baseTheme === "light") {
+      // Warm Beige is light mode; dark mode is Pitch Black
+      nextTheme = activeTheme === "light" ? "dark" : "light";
+    } else if (baseTheme === "white") {
+      // Pure White is light mode; dark mode is Pitch Black
+      nextTheme = activeTheme === "white" ? "dark" : "white";
+    } else {
+      // Green (emerald), Blue (blue), Red (red), Pitch Black (dark):
+      // Dark mode is the base theme; Light mode is Pure White
+      nextTheme = activeTheme === "white" ? baseTheme : "white";
+    }
+    setThemeOverride(nextTheme);
     try {
-      localStorage.setItem("nfc_card_theme", nextTheme);
-    } catch (e) {
-      console.error("Could not save theme preference:", e);
-    }
-    document.documentElement.setAttribute("data-theme", nextTheme);
-    const metaTheme = document.querySelector('meta[name="theme-color"]');
-    if (metaTheme) {
-      metaTheme.setAttribute(
-        "content",
-        nextTheme === "light" ? "#f6f1e8" : "#0b1120"
-      );
-    }
+      localStorage.setItem("nfc_card_user_theme", nextTheme);
+      localStorage.setItem("nfc_card_user_base", baseTheme);
+    } catch (e) {}
   }
 
   useEffect(() => {
@@ -279,24 +1111,39 @@ function App() {
   }, [introPhase]);
 
   useEffect(() => {
+    // Check if early event was already captured in index.html
+    if (window.deferredInstallPrompt) {
+      setInstallPrompt(window.deferredInstallPrompt);
+    }
+
     function handleInstallAvailable(event) {
       event.preventDefault();
+      window.deferredInstallPrompt = event;
       setInstallPrompt(event);
     }
 
     function handleAppInstalled() {
+      window.deferredInstallPrompt = null;
       setInstallPrompt(null);
       setInstallHelpOpen(false);
-      showToast("Jontech was added to your apps.");
+      showToast(`${profile.business} was added to your apps.`);
+    }
+
+    function handleAppInstallReady() {
+      if (window.deferredInstallPrompt) {
+        setInstallPrompt(window.deferredInstallPrompt);
+      }
     }
 
     window.addEventListener("beforeinstallprompt", handleInstallAvailable);
     window.addEventListener("appinstalled", handleAppInstalled);
+    window.addEventListener("app-install-ready", handleAppInstallReady);
     return () => {
       window.removeEventListener("beforeinstallprompt", handleInstallAvailable);
       window.removeEventListener("appinstalled", handleAppInstalled);
+      window.removeEventListener("app-install-ready", handleAppInstallReady);
     };
-  }, []);
+  }, [profile.business]);
 
   useEffect(() => {
     const reducedMotion = window.matchMedia(
@@ -413,7 +1260,7 @@ function App() {
       navigator.standalone === true;
 
     if (isInstalled) {
-      showToast("Jontech is already open as an app.");
+      showToast(`${profile.business} is already open as an app.`);
       return;
     }
 
@@ -423,12 +1270,12 @@ function App() {
         const { outcome } = await installPrompt.userChoice;
         setInstallPrompt(null);
         if (outcome === "accepted") {
-          showToast("Jontech was added to your apps.");
+          showToast(`${profile.business} was added to your apps.`);
         } else {
           setInstallHelpOpen(true);
         }
       } catch (error) {
-        console.error("Unable to install Jontech:", error);
+        console.error("Unable to install:", error);
         setInstallHelpOpen(true);
       }
       return;
@@ -452,7 +1299,7 @@ function App() {
   }, [qrOpen, installHelpOpen]);
 
   if (window.location.pathname.replace(/\/+$/, "") === "/shop") {
-    return <LayoutGallery />;
+    return <ProductShop profile={profile} products={allProducts} />;
   }
 
   return (
@@ -469,10 +1316,10 @@ function App() {
               <span className="intro-orbit intro-orbit-one" />
               <span className="intro-orbit intro-orbit-two" />
               <span className="intro-emblem-core">
-                <img src="/aljon-profile.jfif" alt="" />
+                <img src={profile.profile_image_url} alt="" />
               </span>
             </div>
-            <p className="intro-eyebrow">Your digital growth partner</p>
+            <p className="intro-eyebrow">{profile.eyebrow}</p>
             <h1 className="intro-brand">{profile.name}</h1>
             <p className="intro-role">{profile.role}</p>
             <div className="intro-loader" role="presentation">
@@ -518,15 +1365,19 @@ function App() {
               type="button"
               onClick={toggleTheme}
               aria-label={
-                theme === "light"
-                  ? "Switch to dark theme"
-                  : "Switch to light theme"
+                isLightMode
+                  ? "Switch to dark mode"
+                  : "Switch to light mode"
               }
-              title="Change color theme"
+              title={
+                isLightMode
+                  ? (baseTheme === "light" || baseTheme === "white" ? "Switch to Pitch Black" : `Switch to ${baseTheme} mode`)
+                  : "Switch to light mode"
+              }
             >
               <i
                 className={
-                  theme === "light" ? "fa-solid fa-moon" : "fa-solid fa-sun"
+                  isLightMode ? "fa-solid fa-moon" : "fa-solid fa-sun"
                 }
                 aria-hidden="true"
               />
@@ -538,7 +1389,7 @@ function App() {
             <div className="profile-avatar-frame">
               <img
                 className="profile-photo"
-                src="/aljon-profile.jfif"
+                src={profile.profile_image_url}
                 alt={`Portrait of ${profile.name}`}
                 onError={(event) => {
                   event.currentTarget.hidden = true;
@@ -546,7 +1397,7 @@ function App() {
               />
             </div>
             <div className="profile-copy">
-              <p className="eyebrow">Your digital growth partner</p>
+              <p className="eyebrow">{profile.eyebrow}</p>
               <h1 id="person-name">{profile.name}</h1>
               <span className="profile-divider" aria-hidden="true" />
               <p className="role">{profile.role}</p>
@@ -569,7 +1420,7 @@ function App() {
                   className="action"
                   ref={installButton}
                   type="button"
-                  aria-label="Install Jontech"
+                  aria-label={`Install ${profile.business}`}
                   onClick={installCard}
                 >
                   <i className="fa-solid fa-download" aria-hidden="true" />
@@ -591,17 +1442,15 @@ function App() {
             <section className="showcase-frame" aria-labelledby="showcase-heading">
               <div className="showcase-image">
                 <img
-                  src={products[0].image}
-                  alt={products[0].alt}
+                  src={featuredProducts[0]?.image_url}
+                  alt={featuredProducts[0]?.alt}
                   loading="lazy"
                 />
                 <span>Website &amp; digital services</span>
               </div>
               <h2 id="showcase-heading">About {profile.name.split(" ")[0]}</h2>
               <p className="description">
-                {profile.business} helps individuals and small businesses build
-                their online presence with professional websites, digital
-                business cards, and practical digital support.
+                {profile.description}
               </p>
               <div className="contact-list" aria-label="Direct contact details">
                 <a href={`tel:${profile.phoneLink}`}>
@@ -615,7 +1464,7 @@ function App() {
                   <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" />
                 </a>
                 <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profile.address)}`}
+                  href={resolveMapUrl(profile)}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -635,13 +1484,31 @@ function App() {
                 <span className="sample-label">SAMPLE</span>
               </div>
               <div className="products-grid">
-                {products.map((product) => (
-                  <article className="product-card" key={product.name}>
-                    <h3>{product.name}</h3>
+                {featuredProducts.map((product) => (
+                  <article
+                    className="product-card"
+                    key={product.id || product.name}
+                    onClick={() => openProjectModal(product)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`View full details of ${product.name}`}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        openProjectModal(product);
+                      }
+                    }}
+                  >
+                    <div className="product-card-info">
+                      <h3>{product.name}</h3>
+                      {product.price && (
+                        <span className="product-card-badge">{product.price}</span>
+                      )}
+                    </div>
                     <img
                       className="product-image"
-                      src={product.image}
-                      alt={product.alt}
+                      src={product.image_url}
+                      alt={product.alt || product.name}
                       loading="lazy"
                     />
                   </article>
@@ -670,6 +1537,29 @@ function App() {
               </span>
             </a>
           </nav>
+
+          {/* Simple Client Inquiries Tagline */}
+          <footer className="card-creator-tagline">
+            <p>
+              Want a digital business card like this?{" "}
+              <a
+                href={`mailto:${profile.email || "aljonrisasalonzo@gmail.com"}?subject=${encodeURIComponent("Digital Card Website Inquiry")}&body=${encodeURIComponent("Hi! I would like to create a digital business card like calling-card.web.app for my business.")}`}
+                className="card-creator-link"
+              >
+                <span>Get your own card</span>
+                <i className="fa-solid fa-arrow-right" aria-hidden="true" />
+              </a>
+            </p>
+            <a
+              href="https://calling-card.web.app"
+              className="card-creator-domain"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Visit Calling Card website"
+            >
+              calling-card.web.app
+            </a>
+          </footer>
         </article>
       </main>
 
@@ -702,21 +1592,44 @@ function App() {
             <div className="install-guide-icon" aria-hidden="true">
               <i className="fa-solid fa-mobile-screen-button" />
             </div>
-            <h2 id="install-title">Install Jontech</h2>
-            <p>
-              Add this digital card to your device to open it from your home
-              screen or apps without the browser address bar.
+            <h2 id="install-title">Install {profile.business}</h2>
+            <p className="install-guide-sub">
+              {installGuide.subtitle}
             </p>
-            <h3>{installGuide.browser}</h3>
-            <ol>
-              {installGuide.steps.map((step) => <li key={step}>{step}</li>)}
-            </ol>
+
+            <div className="install-device-badge">
+              <i className={installGuide.device === "ios" ? "fa-brands fa-apple" : installGuide.device === "android" ? "fa-brands fa-android" : "fa-solid fa-desktop"} aria-hidden="true" />
+              <span>{installGuide.browser}</span>
+            </div>
+
+            <div className="install-steps-container">
+              {installGuide.steps.map((step) => (
+                <div className="install-step-card" key={step.num}>
+                  <div className="install-step-num">{step.num}</div>
+                  <div className="install-step-content">
+                    <div className="install-step-title">
+                      <i className={step.icon} aria-hidden="true" />
+                      <strong>{step.title}</strong>
+                    </div>
+                    <p className="install-step-detail">{step.detail}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {installGuide.device === "ios" && (
+              <div className="install-safari-arrow-tip">
+                <i className="fa-solid fa-arrow-down" aria-hidden="true" />
+                <span>Tap the Share icon at the bottom of your screen to start</span>
+              </div>
+            )}
+
             <button
               className="install-guide-done"
               type="button"
               onClick={closeInstallHelp}
             >
-              Got it
+              Got it, let's do it!
             </button>
           </section>
         </div>
@@ -751,7 +1664,7 @@ function App() {
               <QRCodeSVG
                 value={window.location.href}
                 size={148}
-                fgColor={theme === "light" ? "#4a3319" : "#163c83"}
+                fgColor={activeTheme === "white" ? "#000000" : activeTheme === "light" ? "#4a3319" : "#ffffff"}
                 level="H"
                 includeMargin
               />
@@ -759,6 +1672,32 @@ function App() {
           </section>
         </div>
       )}
+
+      {/* Full Project Details Modal */}
+      {selectedProject && (
+        <ProjectDetailModal
+          project={selectedProject}
+          profile={profile}
+          onClose={closeProjectModal}
+          onOpenLightbox={(idx) => openProjectLightbox(idx)}
+        />
+      )}
+
+      {/* Lightbox / Fullscreen Image Viewer Modal with Slide Features for Project */}
+      {activeProjectImageIndex !== null && projectImages.length > 0 && (
+        <ImageLightbox
+          images={projectImages}
+          activeIndex={activeProjectImageIndex}
+          onClose={closeProjectLightbox}
+          onNext={nextProjectImage}
+          onPrev={prevProjectImage}
+          onTouchStart={handleProjectTouchStart}
+          onTouchEnd={handleProjectTouchEnd}
+        />
+      )}
+
+      {/* Super Good Touch Thumb Feedback Layer */}
+      <TouchThumbLayer />
 
       {toast && (
         <div className="toast" role="status" aria-live="polite">

@@ -1,10 +1,10 @@
-const CACHE_NAME = "jontech-shell-v1";
+const CACHE_NAME = "callingcard-shell-v3";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
-  "/jontech-icon-192.png",
-  "/jontech-icon-512.png",
-  "/jontech-icon.svg",
+  "/callingcard-180.png",
+  "/callingcard-192.png",
+  "/callingcard-512.png",
 ];
 
 self.addEventListener("install", (event) => {

@@ -16,4 +16,9 @@ export default defineConfig({
       ),
     },
   },
+  server: {
+    // Handle SPA routes in dev — /admin and /shop serve index.html
+    // so React can handle routing client-side
+    historyApiFallback: true,
+  },
 });
