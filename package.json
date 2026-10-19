@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:remo": "vite build --mode remo",
+    "deploy:main": "vite build && npx firebase-tools deploy --only hosting:calling-card --project digital-callingcard",
+    "deploy:remo": "vite build --mode remo && npx firebase-tools deploy --only hosting:remo-contacts --project digital-callingcard",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -9,6 +9,16 @@
           "business-card-2"
         ]
       }
+    },
+    "digital-callingcard": {
+      "hosting": {
+        "remo-contacts": [
+          "remo-contacts"
+        ],
+        "calling-card": [
+          "calling-card"
+        ]
+      }
     }
   },
   "etags": {}

@@ -1,80 +1,49 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { supabase } from "./lib/supabase";
+import { supabase, supabaseUrl } from "./lib/supabase";
 import { applyFavicon, applySiteTitle } from "./lib/siteSettings";
 
 /* ── Fallback data (used until Supabase loads) ── */
 const fallbackProfile = {
-  name: "Aljon Alonzo",
-  business: "Calling Card",
-  role: "Website & Digital Business Associate",
-  phone: "0951 364 4817",
-  phoneLink: "+639513644817",
-  email: "aljonrisasalonzo@gmail.com",
-  address:
-    "Brgy. 185, North B12, L9 Manggahan Road, Barangay 185, Caloocan, Metro Manila",
-  facebook: "https://www.facebook.com/aljon11onsi/",
-  youtube: "https://www.youtube.com/@aljonalonzo2195",
-  description:
-    "Calling Card helps individuals and small businesses build their online presence with professional websites, digital business cards, and practical digital support.",
-  eyebrow: "Your digital growth partner",
-  profile_image_url: "/aljon-profile.jfif",
+  name: "",
+  business: "",
+  role: "",
+  phone: "",
+  phoneLink: "",
+  email: "",
+  address: "",
+  facebook: "",
+  youtube: "",
+  description: "",
+  eyebrow: "",
+  profile_image_url: "",
   theme_mode: (typeof window !== "undefined" && localStorage.getItem("nfc_card_theme")) || "dark",
 };
 
-const fallbackProducts = [
-  {
-    name: "Website Design & Development",
-    image_url:
-      "https://images.unsplash.com/photo-1558655146-9f40138edfeb?auto=format&fit=crop&w=720&q=85",
-    alt: "Brand identity colors and design materials",
-  },
-  {
-    name: "Digital Business Cards",
-    image_url:
-      "https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=720&q=85",
-    alt: "Social media campaign displayed on a phone",
-  },
-  {
-    name: "Small Business Websites",
-    image_url:
-      "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=720&q=85",
-    alt: "Team planning a marketing strategy together",
-  },
-  {
-    name: "Online Store Setup",
-    image_url:
-      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=720&q=85",
-    alt: "Website analytics and design on a laptop",
-  },
-  {
-    name: "Website Maintenance & Support",
-    image_url:
-      "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?auto=format&fit=crop&w=720&q=85",
-    alt: "Camera prepared for professional content creation",
-  },
-];
+const fallbackProducts = [];
 
 /** Normalise a Supabase profiles row to the shape our UI expects. */
 function normalizeProfile(row) {
   if (!row) return fallbackProfile;
   return {
-    name: row.name || fallbackProfile.name,
-    business: row.business || fallbackProfile.business,
-    role: row.role || fallbackProfile.role,
-    phone: row.phone || fallbackProfile.phone,
-    phoneLink: row.phone_link || fallbackProfile.phoneLink,
-    email: row.email || fallbackProfile.email,
-    address: row.address || fallbackProfile.address,
+    name: row.name !== undefined && row.name !== null ? row.name : fallbackProfile.name,
+    business: row.business !== undefined && row.business !== null ? row.business : fallbackProfile.business,
+    role: row.role !== undefined && row.role !== null ? row.role : fallbackProfile.role,
+    phone: row.phone !== undefined && row.phone !== null ? row.phone : fallbackProfile.phone,
+    phoneLink: row.phone_link !== undefined && row.phone_link !== null ? row.phone_link : fallbackProfile.phoneLink,
+    email: row.email !== undefined && row.email !== null ? row.email : fallbackProfile.email,
+    address: row.address !== undefined && row.address !== null ? row.address : fallbackProfile.address,
     address_link: row.address_link || row.addressLink || "",
-    facebook: row.facebook || fallbackProfile.facebook,
-    youtube: row.youtube || fallbackProfile.youtube,
-    description: row.description || fallbackProfile.description,
-    eyebrow: row.eyebrow || fallbackProfile.eyebrow,
+    facebook: row.facebook !== undefined && row.facebook !== null ? row.facebook : fallbackProfile.facebook,
+    youtube: row.youtube !== undefined && row.youtube !== null ? row.youtube : "",
+    description: row.description !== undefined && row.description !== null ? row.description : fallbackProfile.description,
+    eyebrow: row.eyebrow !== undefined && row.eyebrow !== null ? row.eyebrow : fallbackProfile.eyebrow,
+    showcase_caption: row.showcase_caption || '',
     profile_image_url: row.profile_image_url || fallbackProfile.profile_image_url,
     site_title: row.site_title || '',
     site_icon_url: row.site_icon_url || '',
     theme_mode: row.theme_mode || 'dark',
+    custom_qr_url: row.custom_qr_url || '',
     custom_links: (() => {
       try {
         if (row.custom_links) {
@@ -771,6 +740,7 @@ function resolveCustomIcon(icon, label = "", url = "") {
 /** Build the action buttons array from a profile object. */
 function buildActions(profile) {
   const mapUrl = resolveMapUrl(profile);
+  // Base actions: Call, Email, Text, Location, Facebook
   const baseActions = [
     {
       label: "Call",
@@ -805,15 +775,19 @@ function buildActions(profile) {
       external: true,
       social: true,
     },
-    {
+  ];
+
+  // Optional YouTube action button: only shown when profile.youtube has a valid URL
+  if (profile.youtube && profile.youtube.trim()) {
+    baseActions.push({
       label: "YouTube",
       icon: "fa-brands fa-youtube",
-      href: profile.youtube,
+      href: profile.youtube.trim().startsWith("http") ? profile.youtube.trim() : `https://${profile.youtube.trim()}`,
       ariaLabel: `${profile.business} on YouTube`,
       external: true,
       social: true,
-    },
-  ];
+    });
+  }
 
   // Map any custom links (TikTok, another FB page, Instagram, LinkedIn, etc.)
   const customLinksList = Array.isArray(profile.custom_links)
@@ -832,10 +806,43 @@ function buildActions(profile) {
   return [...baseActions, ...customLinksList];
 }
 
+const CACHE_SCOPE = (() => {
+  try {
+    if (supabaseUrl) {
+      const match = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/);
+      if (match && match[1]) return match[1];
+    }
+  } catch (e) {}
+  return "default";
+})();
+
+const PROFILE_CACHE_KEY = `nfc_card_profile_cache_${CACHE_SCOPE}`;
+const PRODUCTS_CACHE_KEY = `nfc_card_products_cache_${CACHE_SCOPE}`;
+
+function getInitialProfile() {
+  try {
+    const cached = localStorage.getItem(PROFILE_CACHE_KEY);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  } catch (e) {}
+  return fallbackProfile;
+}
+
+function getInitialProducts() {
+  try {
+    const cached = localStorage.getItem(PRODUCTS_CACHE_KEY);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  } catch (e) {}
+  return fallbackProducts;
+}
+
 function App() {
   /* ── Supabase data ── */
-  const [profile, setProfile] = useState(fallbackProfile);
-  const [allProducts, setAllProducts] = useState(fallbackProducts);
+  const [profile, setProfile] = useState(getInitialProfile);
+  const [allProducts, setAllProducts] = useState(getInitialProducts);
   const [dataReady, setDataReady] = useState(false);
 
   /* Featured products for the main card, all products for the shop */
@@ -856,6 +863,10 @@ function App() {
         if (profileRes.data) {
           const norm = normalizeProfile(profileRes.data);
           setProfile(norm);
+          try {
+            localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(norm));
+            localStorage.setItem("nfc_card_profile_cache", JSON.stringify(norm));
+          } catch (e) {}
           if (norm.theme_mode) {
             try {
               localStorage.setItem("nfc_card_theme", norm.theme_mode);
@@ -873,14 +884,21 @@ function App() {
           }
           if (Array.isArray(norm.custom_links)) {
             try {
+              localStorage.setItem(`nfc_card_custom_links_${CACHE_SCOPE}`, JSON.stringify(norm.custom_links));
               localStorage.setItem("nfc_card_custom_links", JSON.stringify(norm.custom_links));
             } catch (e) {}
           }
         }
-        if (productsRes.data) setAllProducts(normalizeProducts(productsRes.data));
+        if (productsRes.data) {
+          const normProds = normalizeProducts(productsRes.data);
+          setAllProducts(normProds);
+          try {
+            localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(normProds));
+            localStorage.setItem("nfc_card_products_cache", JSON.stringify(normProds));
+          } catch (e) {}
+        }
       } catch (err) {
         console.error("Failed to load data from Supabase:", err);
-        // Fallback data is already set
       } finally {
         if (!cancelled) setDataReady(true);
       }
@@ -1146,11 +1164,14 @@ function App() {
   }, [profile.business]);
 
   useEffect(() => {
+    // Only begin exiting the intro screen once the latest data is ready from Supabase
+    if (!dataReady) return undefined;
+
     const reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    const revealDelay = reducedMotion ? 80 : 1550;
-    const exitDelay = reducedMotion ? 0 : 650;
+    const revealDelay = reducedMotion ? 80 : 800;
+    const exitDelay = reducedMotion ? 0 : 500;
     const revealTimer = window.setTimeout(
       () => setIntroPhase("exiting"),
       revealDelay,
@@ -1166,7 +1187,7 @@ function App() {
       window.clearTimeout(toastTimer.current);
       window.clearTimeout(rippleTimer.current);
     };
-  }, []);
+  }, [dataReady]);
 
   useEffect(() => {
     if (qrOpen) closeButton.current?.focus();
@@ -1316,7 +1337,13 @@ function App() {
               <span className="intro-orbit intro-orbit-one" />
               <span className="intro-orbit intro-orbit-two" />
               <span className="intro-emblem-core">
-                <img src={profile.profile_image_url} alt="" />
+                {profile.profile_image_url ? (
+                  <img src={profile.profile_image_url} alt="" />
+                ) : (
+                  <div className="intro-emblem-placeholder" style={{ opacity: 0.35, fontSize: "2rem" }}>
+                    <i className="fa-solid fa-user-tie" aria-hidden="true" />
+                  </div>
+                )}
               </span>
             </div>
             <p className="intro-eyebrow">{profile.eyebrow}</p>
@@ -1387,14 +1414,20 @@ function App() {
           <section className="profile-panel" aria-label="Business owner profile">
             <div className="profile-halo" aria-hidden="true" />
             <div className="profile-avatar-frame">
-              <img
-                className="profile-photo"
-                src={profile.profile_image_url}
-                alt={`Portrait of ${profile.name}`}
-                onError={(event) => {
-                  event.currentTarget.hidden = true;
-                }}
-              />
+              {profile.profile_image_url ? (
+                <img
+                  className="profile-photo"
+                  src={profile.profile_image_url}
+                  alt={`Portrait of ${profile.name}`}
+                  onError={(event) => {
+                    event.currentTarget.hidden = true;
+                  }}
+                />
+              ) : (
+                <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", opacity: 0.4, fontSize: "2.5rem" }}>
+                  <i className="fa-solid fa-user" aria-hidden="true" />
+                </div>
+              )}
             </div>
             <div className="profile-copy">
               <p className="eyebrow">{profile.eyebrow}</p>
@@ -1441,12 +1474,20 @@ function App() {
 
             <section className="showcase-frame" aria-labelledby="showcase-heading">
               <div className="showcase-image">
-                <img
-                  src={featuredProducts[0]?.image_url}
-                  alt={featuredProducts[0]?.alt}
-                  loading="lazy"
-                />
-                <span>Website &amp; digital services</span>
+                {featuredProducts[0]?.image_url ? (
+                  <img
+                    src={featuredProducts[0].image_url}
+                    alt={featuredProducts[0]?.alt || "Showcase"}
+                    loading="lazy"
+                  />
+                ) : (
+                  <div style={{ width: "100%", height: "100%", background: "var(--product-img-bg, rgba(255,255,255,0.05))" }} />
+                )}
+                <span>
+                  {profile.showcase_caption && profile.showcase_caption.trim()
+                    ? profile.showcase_caption.trim()
+                    : (profile.business || "Products & Services")}
+                </span>
               </div>
               <h2 id="showcase-heading">About {profile.name.split(" ")[0]}</h2>
               <p className="description">
@@ -1659,15 +1700,107 @@ function App() {
               <i className="fa-solid fa-xmark" aria-hidden="true" />
             </button>
             <h2 id="qr-title">Scan to connect</h2>
-            <p>Point your camera at the code to open {profile.business}&apos;s digital card.</p>
-            <div className="qr-frame">
+            <p>Point your phone camera to instantly open {profile.business}&apos;s digital card.</p>
+
+            {/* Permanent QR Code Frame */}
+            <div className="qr-frame" id="permanent-qr-container">
               <QRCodeSVG
-                value={window.location.href}
-                size={148}
-                fgColor={activeTheme === "white" ? "#000000" : activeTheme === "light" ? "#4a3319" : "#ffffff"}
+                id="permanent-card-qr"
+                value={
+                  profile.custom_qr_url && profile.custom_qr_url.trim()
+                    ? profile.custom_qr_url.trim()
+                    : window.location.origin
+                }
+                size={180}
+                fgColor="#000000"
+                bgColor="#ffffff"
                 level="H"
                 includeMargin
               />
+            </div>
+
+            <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+              <div style={{
+                fontSize: '0.74rem',
+                color: 'var(--screen-muted)',
+                background: 'rgba(255, 255, 255, 0.05)',
+                padding: '6px 12px',
+                borderRadius: 8,
+                wordBreak: 'break-all',
+                fontFamily: 'monospace'
+              }}>
+                {profile.custom_qr_url && profile.custom_qr_url.trim()
+                  ? profile.custom_qr_url.trim()
+                  : window.location.origin}
+              </div>
+
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  type="button"
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    borderRadius: 8,
+                    background: 'var(--screen-control)',
+                    border: '1px solid var(--screen-control-border)',
+                    color: 'var(--screen-text)',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6
+                  }}
+                  onClick={() => {
+                    const svg = document.getElementById('permanent-card-qr');
+                    if (!svg) return;
+                    const svgData = new XMLSerializer().serializeToString(svg);
+                    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+                    const svgUrl = URL.createObjectURL(svgBlob);
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = svgUrl;
+                    downloadLink.download = `${profile.business.replace(/\s+/g, '-').toLowerCase()}-qr-code.svg`;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                    URL.revokeObjectURL(svgUrl);
+                    showToast('QR Code downloaded!');
+                  }}
+                >
+                  <i className="fa-solid fa-download" aria-hidden="true" />
+                  <span>Download QR</span>
+                </button>
+
+                <button
+                  type="button"
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    borderRadius: 8,
+                    background: 'var(--screen-control)',
+                    border: '1px solid var(--screen-control-border)',
+                    color: 'var(--screen-text)',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6
+                  }}
+                  onClick={() => {
+                    const targetUrl = profile.custom_qr_url && profile.custom_qr_url.trim()
+                      ? profile.custom_qr_url.trim()
+                      : window.location.origin;
+                    navigator.clipboard.writeText(targetUrl);
+                    showToast('Card link copied to clipboard!');
+                  }}
+                >
+                  <i className="fa-regular fa-copy" aria-hidden="true" />
+                  <span>Copy Link</span>
+                </button>
+              </div>
             </div>
           </section>
         </div>
